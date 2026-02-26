@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">投屏接收端</string>
+    <string name="waiting_for_connection">等待连接...</string>
+    <string name="connected">已连接</string>
+    <string name="disconnected">已断开</string>
+    <string name="ip_address_format">IP: %s</string>
+    <string name="port_format">端口: %d</string>
+    <string name="instruction">请在电脑端输入此IP地址进行连接</string>
+</resources>

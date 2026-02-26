@@ -1,0 +1,92 @@
+# ============================================
+# ScreenCast Pro - Git Ignore
+# ============================================
+
+# ===== Java / Maven =====
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ===== Gradle =====
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ===== IDE =====
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ===== Android =====
+*.apk
+*.aab
+*.dex
+*.class
+bin/
+gen/
+out/
+local.properties
+proguard/
+*.log
+
+# ===== Logs =====
+*.log
+logs/
+*.log.*
+
+# ===== Temp Files =====
+*.tmp
+*.bak
+*.backup
+*.orig
+*.rej
+tmp/
+temp/
+
+# ===== Certs / Keys =====
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.key
+*.pem
+*.crt
+*.p8
+
+# ===== Project Specific =====
+# PC客户端构建目录
+pc-client/target/
+pc-client/*.log
+pc-client/hs_err_pid*.log
+
+# TV服务端构建目录
+tv-server/app/build/
+tv-server/.gradle/
+tv-server/local.properties
+
+# Maven wrapper
+.mvn/
+mvnw
+mvnw.cmd
+
+# Environment
+.env
+.env.local
