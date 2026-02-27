@@ -1,23 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- TV Banner - 320x180dp 是Android TV推荐尺寸 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 背景 -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#FF2196F3"/>
-            <corners android:radius="8dp"/>
+            <gradient
+                android:angle="135"
+                android:startColor="#FF1A1A2E"
+                android:endColor="#FF16213E"
+                android:type="linear" />
+            <corners android:radius="16dp" />
         </shape>
     </item>
-    <item android:gravity="center">
+    <!-- 图标 -->
+    <item
+        android:gravity="center"
+        android:width="80dp"
+        android:height="80dp">
         <vector
-            android:width="48dp"
-            android:height="48dp"
+            android:width="80dp"
+            android:height="80dp"
             android:viewportWidth="108"
             android:viewportHeight="108">
+            <!-- 投屏图标 - 屏幕 + 箭头 -->
             <path
-                android:fillColor="#FFFFFF"
-                android:pathData="M54,30 L66,42 L60,42 L60,66 L48,66 L48,42 L42,42 Z"/>
+                android:fillColor="#FF00D4FF"
+                android:pathData="M20,25 L88,25 L88,65 L56,65 L56,75 L68,75 L54,88 L40,75 L52,75 L52,65 L20,65 Z M24,29 L84,29 L84,61 L24,61 Z"/>
             <path
-                android:fillColor="#FFFFFF"
-                android:pathData="M30,72 L78,72 L78,78 L30,78 Z"/>
+                android:fillColor="#FFA855F7"
+                android:pathData="M54,35 L66,47 L60,47 L60,55 L48,55 L48,47 L42,47 Z"/>
         </vector>
     </item>
+    
 </layer-list>
