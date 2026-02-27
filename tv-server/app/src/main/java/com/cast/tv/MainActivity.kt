@@ -137,10 +137,24 @@ class MainActivity : ComponentActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
+        
+        Timber.d("MainActivity销毁，断开所有连接")
+        
+        // 停止投屏服务，断开所有连接
+        CastServerService.stop(this)
+        
+        // 释放解码器
         videoDecoder?.release()
         videoDecoder = null
         sharedSurface = null
         onVideoFrameReceived = null
+    }
+    
+    override fun onBackPressed() {
+        super.onBackPressed()
+        Timber.d("用户按下返回键，断开连接")
+        // 返回键也会触发onDestroy，但这里可以立即断开
+        CastServerService.stop(this)
     }
     
     /**
