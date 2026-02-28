@@ -129,31 +129,69 @@ public class ScreenCapture {
     /**
      * 停止捕获
      */
-    public void stop() {
+    public synchronized void stop() {
+        if (!isRunning.get() && executor == null) {
+            // 已经停止
+            return;
+        }
+        
+        System.out.println("🛑 正在停止屏幕捕获...");
         isRunning.set(false);
         
-        if (executor != null) {
-            executor.shutdown();
-            executor = null;
+        // 等待线程完全退出（最多等待 3 秒）
+        int waitCount = 0;
+        while (executor != null && waitCount < 30) {
+            try {
+                Thread.sleep(100);
+                waitCount++;
+            } catch (InterruptedException e) {
+                System.err.println("⚠️ 等待线程退出时被中断");
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
         
-        // 释放FFmpeg资源
-        if (frame != null) {
-            av_frame_free(frame);
-            frame = null;
+        // 强制关闭线程池
+        if (executor != null) {
+            executor.shutdownNow();
+            try {
+                if (!executor.awaitTermination(1, java.util.concurrent.TimeUnit.SECONDS)) {
+                    System.err.println("⚠️ 线程池未能在 1 秒内关闭");
+                }
+            } catch (InterruptedException e) {
+                System.err.println("⚠️ 等待线程池关闭时被中断");
+                Thread.currentThread().interrupt();
+            }
+            executor = null;
+            System.out.println("✅ 线程池已关闭");
         }
-        if (yuvFrame != null) {
-            av_frame_free(yuvFrame);
-            yuvFrame = null;
+        
+        // 释放 FFmpeg 资源（确保线程已退出）
+        try {
+            if (frame != null) {
+                av_frame_free(frame);
+                frame = null;
+            }
+            if (yuvFrame != null) {
+                av_frame_free(yuvFrame);
+                yuvFrame = null;
+            }
+            if (swsContext != null) {
+                sws_freeContext(swsContext);
+                swsContext = null;
+            }
+            if (codecContext != null) {
+                avcodec_free_context(codecContext);
+                codecContext = null;
+            }
+            System.out.println("✅ FFmpeg 资源已释放");
+        } catch (Exception e) {
+            System.err.println("⚠️ 释放 FFmpeg 资源时出错：" + e.getMessage());
         }
-        if (swsContext != null) {
-            sws_freeContext(swsContext);
-            swsContext = null;
-        }
-        if (codecContext != null) {
-            avcodec_free_context(codecContext);
-            codecContext = null;
-        }
+        
+        // 释放 Robot 资源
+        robot = null;
+        System.out.println("✅ 屏幕捕获已完全停止");
     }
     
     /**

@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -53,20 +54,40 @@ class MainActivity : ComponentActivity() {
     private var videoDecoder: VideoDecoder? = null
     private var surfaceView: SurfaceView? = null
     
-    // 颜色定义 - 与PC端保持一致
+    // 颜色定义 - 蓝紫色主题（与 PC 端保持一致）
     companion object {
-        val ColorBgDark = Color(0xFF0A0A0F)
-        val ColorBgCard = Color(0xFF14141E).copy(alpha = 0.6f)
-        val ColorAccentCyan = Color(0xFF00D4FF)
-        val ColorAccentPurple = Color(0xFFA855F7)
-        val ColorTextPrimary = Color.White
-        val ColorTextSecondary = Color.White.copy(alpha = 0.7f)
-        val ColorTextMuted = Color.White.copy(alpha = 0.5f)
+        // 背景色 - 浅紫渐变
+        val ColorBgLight = Color(0xFFF5F3FF)
+        val ColorBgGradientStart = Color(0xFFF5F3FF)
+        val ColorBgGradientMiddle = Color(0xFFEDE9FE)
+        val ColorBgGradientEnd = Color(0xFFDDD6FE)
+        
+        // 卡片背景 - 白色半透明
+        val ColorBgCard = Color(0xFFFFFFFF).copy(alpha = 0.85f)
+        val ColorBgCardHover = Color(0xFFFFFFFF).copy(alpha = 0.92f)
+        
+        // 主色调 - 靛蓝紫罗兰渐变
+        val ColorPrimaryIndigo = Color(0xFF6366F1)
+        val ColorPrimaryPurple = Color(0xFF8B5CF6)
+        val ColorPrimaryLightPurple = Color(0xFFA78BFA)
+        
+        // 辅助色
+        val ColorAccentCyan = Color(0xFF06B6D4)
+        val ColorTextPrimary = Color(0xFF1E293B)
+        val ColorTextSecondary = Color(0xFF64748B)
+        val ColorTextMuted = Color(0xFF94A3B8)
+        val ColorTextWhite = Color.White
+        
+        // 状态颜色
         val ColorStatusConnected = Color(0xFF10B981)
         val ColorStatusDisconnected = Color(0xFFEF4444)
         val ColorStatusWaiting = Color(0xFFF59E0B)
         
-        // 用于传递Surface给Service
+        // 边框和分隔线
+        val ColorBorder = Color(0xFFE2E8F0)
+        val ColorBorderLight = Color(0xFFF1F5F9)
+        
+        // 用于传递 Surface 给 Service
         var sharedSurface: android.view.Surface? = null
         var onVideoFrameReceived: ((ByteArray, Long) -> Unit)? = null
     }
@@ -268,13 +289,16 @@ fun MainScreen(
     connectionStatus: MainActivity.ConnectionStatus,
     connectedDevice: String?
 ) {
-    // 渐变背景
-    val gradientBackground = Brush.verticalGradient(
+    // 渐变背景 - 蓝紫色主题
+    val gradientBackground = Brush.linearGradient(
         colors = listOf(
-            MainActivity.ColorBgDark,
-            Color(0xFF1A1A2E),
-            Color(0xFF16213E)
-        )
+            MainActivity.ColorBgGradientStart,
+            MainActivity.ColorBgGradientMiddle,
+            MainActivity.ColorBgGradientEnd,
+            MainActivity.ColorBgGradientStart
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
     )
     
     Box(
@@ -284,14 +308,14 @@ fun MainScreen(
             .padding(48.dp),
         contentAlignment = Alignment.Center
     ) {
-        // 背景光晕效果
+        // 背景光晕效果 - 紫色
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            MainActivity.ColorAccentPurple.copy(alpha = 0.1f),
+                            MainActivity.ColorPrimaryPurple.copy(alpha = 0.15f),
                             Color.Transparent
                         ),
                         radius = 800f
@@ -314,13 +338,13 @@ fun MainScreen(
                     verticalArrangement = Arrangement.spacedBy(32.dp),
                     modifier = Modifier.padding(48.dp)
                 ) {
-                    // IP地址显示
+                    // IP 地址显示
                     IpDisplay(serverIp)
                     
                     // 分隔线
                     Divider(
-                        color = Color.White.copy(alpha = 0.1f),
-                        thickness = 1.dp,
+                        color = MainActivity.ColorBorder,
+                        thickness = 2.dp,
                         modifier = Modifier.fillMaxWidth(0.8f)
                     )
                     
@@ -342,8 +366,8 @@ fun MainScreen(
 fun TitleSection() {
     val infiniteTransition = rememberInfiniteTransition(label = "glow")
     val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.6f,
+        initialValue = 0.4f,
+        targetValue = 0.7f,
         animationSpec = infiniteRepeatable(
             animation = tween(2000, easing = EaseInOutCubic),
             repeatMode = RepeatMode.Reverse
@@ -355,7 +379,7 @@ fun TitleSection() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // 渐变标题
+        // 渐变标题 - 靛蓝到紫罗兰
         Text(
             text = "Screen Cast Pro",
             fontSize = 56.sp,
@@ -364,24 +388,25 @@ fun TitleSection() {
             style = MaterialTheme.typography.headlineLarge.copy(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
-                        MainActivity.ColorAccentCyan,
-                        MainActivity.ColorAccentPurple
+                        MainActivity.ColorPrimaryIndigo,
+                        MainActivity.ColorPrimaryPurple
                     )
                 )
             ),
             modifier = Modifier
                 .shadow(
                     elevation = 20.dp,
-                    spotColor = MainActivity.ColorAccentCyan.copy(alpha = glowAlpha),
-                    ambientColor = MainActivity.ColorAccentCyan.copy(alpha = glowAlpha)
+                    spotColor = MainActivity.ColorPrimaryPurple.copy(alpha = glowAlpha),
+                    ambientColor = MainActivity.ColorPrimaryPurple.copy(alpha = glowAlpha)
                 )
         )
         
         // 副标题
         Text(
-            text = "无线投屏接收端",
+            text = "无线投屏到安卓 TV",
             fontSize = 20.sp,
             color = MainActivity.ColorTextMuted,
+            fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center
         )
     }
@@ -392,21 +417,33 @@ fun TitleSection() {
  */
 @Composable
 fun GlassCard(content: @Composable () -> Unit) {
+    val infiniteTransition = rememberInfiniteTransition(label = "hover")
+    val borderColor by infiniteTransition.animateFloat(
+        initialValue = 0.1f,
+        targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = EaseInOutCubic),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "borderAlpha"
+    )
+    
     Box(
         modifier = Modifier
             .fillMaxWidth(0.7f)
             .shadow(
                 elevation = 24.dp,
                 shape = RoundedCornerShape(32.dp),
-                spotColor = Color.Black.copy(alpha = 0.4f)
+                spotColor = MainActivity.ColorPrimaryPurple.copy(alpha = 0.15f),
+                ambientColor = MainActivity.ColorPrimaryPurple.copy(alpha = 0.1f)
             )
             .background(
                 color = MainActivity.ColorBgCard,
                 shape = RoundedCornerShape(32.dp)
             )
             .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = 0.1f),
+                width = 1.5.dp,
+                color = MainActivity.ColorPrimaryPurple.copy(alpha = borderColor),
                 shape = RoundedCornerShape(32.dp)
             )
     ) {
@@ -415,7 +452,7 @@ fun GlassCard(content: @Composable () -> Unit) {
 }
 
 /**
- * IP地址显示
+ * IP 地址显示
  */
 @Composable
 fun IpDisplay(ip: String) {
@@ -424,22 +461,28 @@ fun IpDisplay(ip: String) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "本机IP地址",
+            text = "本机 IP 地址",
             fontSize = 18.sp,
-            color = MainActivity.ColorTextMuted,
+            color = MainActivity.ColorTextSecondary,
+            fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center
         )
         
-        // IP地址卡片
+        // IP 地址卡片 - 蓝紫渐变边框
         Box(
             modifier = Modifier
                 .background(
-                    color = MainActivity.ColorAccentCyan.copy(alpha = 0.1f),
+                    color = MainActivity.ColorPrimaryIndigo.copy(alpha = 0.08f),
                     shape = RoundedCornerShape(16.dp)
                 )
                 .border(
-                    width = 1.dp,
-                    color = MainActivity.ColorAccentCyan.copy(alpha = 0.3f),
+                    width = 2.dp,
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            MainActivity.ColorPrimaryIndigo,
+                            MainActivity.ColorPrimaryPurple
+                        )
+                    ),
                     shape = RoundedCornerShape(16.dp)
                 )
                 .padding(horizontal = 32.dp, vertical = 16.dp)
@@ -448,13 +491,13 @@ fun IpDisplay(ip: String) {
                 text = ip,
                 fontSize = 42.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = MainActivity.ColorAccentCyan,
+                color = MainActivity.ColorPrimaryIndigo,
                 textAlign = TextAlign.Center,
                 fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
             )
         }
         
-        // 端口信息
+        // 端口信息 - 居中显示
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -462,14 +505,16 @@ fun IpDisplay(ip: String) {
             Text(
                 text = "端口:",
                 fontSize = 16.sp,
-                color = MainActivity.ColorTextMuted
+                color = MainActivity.ColorTextSecondary,
+                textAlign = TextAlign.Center
             )
             Text(
                 text = "8888",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
-                color = MainActivity.ColorTextSecondary,
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                color = MainActivity.ColorPrimaryPurple,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -522,15 +567,21 @@ fun ConnectionStatusSection(
                 Box(
                     modifier = Modifier
                         .background(
-                            color = MainActivity.ColorStatusConnected.copy(alpha = 0.15f),
+                            color = MainActivity.ColorPrimaryIndigo.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .border(
+                            width = 1.5.dp,
+                            color = MainActivity.ColorPrimaryIndigo.copy(alpha = 0.3f),
                             shape = RoundedCornerShape(12.dp)
                         )
                         .padding(horizontal = 24.dp, vertical = 12.dp)
                 ) {
                     Text(
-                        text = "来自: $it",
+                        text = "来自：$it",
                         fontSize = 20.sp,
-                        color = MainActivity.ColorStatusConnected,
+                        fontWeight = FontWeight.Medium,
+                        color = MainActivity.ColorPrimaryIndigo,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -605,11 +656,23 @@ fun PulsingIndicator(status: MainActivity.ConnectionStatus) {
  */
 @Composable
 fun InstructionText() {
-    Text(
-        text = "请在电脑端输入上方IP地址进行连接",
-        fontSize = 18.sp,
-        color = MainActivity.ColorTextMuted,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.padding(top = 16.dp)
-    )
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "请在电脑端输入上方 IP 地址进行连接",
+            fontSize = 18.sp,
+            color = MainActivity.ColorTextSecondary,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center
+        )
+        
+        Text(
+            text = "确保电脑和当前设备在同一局域网内",
+            fontSize = 16.sp,
+            color = MainActivity.ColorTextMuted,
+            textAlign = TextAlign.Center
+        )
+    }
 }

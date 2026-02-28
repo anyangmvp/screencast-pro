@@ -1,559 +1,468 @@
 /* ============================================
-   投屏系统 - 深色玻璃拟态主题
-   设计风格: Dark Glassmorphism
-   主色调: 深蓝紫渐变 + 青色点缀
+   投屏系统 - 现代蓝紫主题
+   设计风格：Modern Blue-Purple with Glassmorphism
+   主色调：靛蓝 + 紫罗兰 + 蓝紫渐变
+   视觉效果：清爽渐变、光晕、精致阴影
    ============================================ */
-
-/* 根变量定义 - JavaFX CSS不支持标准CSS的@import语法 */
-:root {
-    /* 主色调 */
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --accent-cyan: #00d4ff;
-    --accent-purple: #a855f7;
-    --accent-pink: #ec4899;
-    
-    /* 背景色 */
-    --bg-dark: #0a0a0f;
-    --bg-card: rgba(20, 20, 30, 0.6);
-    --bg-card-hover: rgba(30, 30, 45, 0.8);
-    --bg-glass: rgba(255, 255, 255, 0.05);
-    --bg-input: rgba(15, 15, 25, 0.8);
-    --bg-input-focused: rgba(25, 25, 40, 0.9);
-    
-    /* 文字色 */
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.7);
-    --text-muted: rgba(255, 255, 255, 0.5);
-    --text-dark: #0a0a0f;
-    
-    /* 边框和阴影 */
-    --border-glass: rgba(255, 255, 255, 0.1);
-    --border-glass-strong: rgba(255, 255, 255, 0.2);
-    --shadow-glow: 0 0 40px rgba(102, 126, 234, 0.3);
-    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
-    
-    /* 状态色 */
-    --status-connected: #10b981;
-    --status-disconnected: #ef4444;
-    --status-waiting: #f59e0b;
-    
-    /* 字体 */
-    --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono: 'JetBrains Mono', 'Consolas', monospace;
-}
 
 /* 全局样式 */
 .root {
     -fx-font-family: "Inter", "Microsoft YaHei", sans-serif;
-    -fx-background-color: #0a0a0f;
+    -fx-background-color: #f5f3ff;
 }
 
 /* ============================================
-   主窗口背景
+   主窗口背景 - 蓝紫渐变
    ============================================ */
 .main-container {
-    -fx-background-color: linear-gradient(to bottom right, 
-        #0a0a0f 0%, 
-        #1a1a2e 50%, 
-        #16213e 100%);
-}
-
-/* 动态背景效果 */
-.background-glow {
-    -fx-background-color: radial-gradient(center 50% 50%, radius 80%, 
-        rgba(102, 126, 234, 0.15) 0%, 
-        transparent 70%);
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #f5f3ff, #ede9fe, #ddd6fe, #f5f3ff);
+    -fx-min-width: 1100px;
+    -fx-min-height: 900px;
 }
 
 /* ============================================
-   玻璃拟态卡片
+   玻璃拟态卡片 - 增强版
    ============================================ */
 .glass-card {
-    -fx-background-color: rgba(20, 20, 30, 0.6);
-    -fx-background-radius: 20px;
-    -fx-border-radius: 20px;
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-    -fx-border-width: 1px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 20, 0, 0, 8);
-    -fx-padding: 24px;
+    -fx-background-color: #ffffffea;
+    -fx-background-radius: 24px;
+    -fx-border-radius: 24px;
+    -fx-border-color: #ffffff80;
+    -fx-border-width: 1.5px;
+    -fx-padding: 28px;
+    -fx-effect: dropshadow(gaussian, #8b5cf61a, 30, 0.3, 0, 8);
 }
 
 .glass-card:hover {
-    -fx-background-color: rgba(30, 30, 45, 0.8);
-    -fx-border-color: rgba(102, 126, 234, 0.3);
-    -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.2), 30, 0, 0, 10);
+    -fx-background-color: #fffffff0;
+    -fx-border-color: #8b5cf640;
+    -fx-effect: dropshadow(gaussian, #8b5cf633, 35, 0.4, 0, 12);
 }
 
 /* ============================================
-   标题样式
+   标题样式 - 渐变文字效果
    ============================================ */
 .title-main {
-    -fx-font-size: 32px;
-    -fx-font-weight: 700;
-    -fx-text-fill: white;
-    -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.5), 10, 0, 0, 0);
+    -fx-font-size: 36px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #6366f1;
+    -fx-effect: dropshadow(gaussian, #8b5cf640, 20, 0.5, 0, 4);
 }
 
-.title-section {
-    -fx-font-size: 18px;
+.title-subtitle {
+    -fx-font-size: 16px;
     -fx-font-weight: 600;
-    -fx-text-fill: white;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #8b5cf6, #a78bfa);
 }
 
-.title-gradient {
-    -fx-font-size: 28px;
+.section-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #1e293b;
+}
+
+.panel-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #6366f1;
+}
+
+.setting-title {
+    -fx-font-size: 15px;
     -fx-font-weight: 700;
-    -fx-fill: linear-gradient(to right, #00d4ff, #a855f7);
+    -fx-text-fill: #374151;
 }
 
 /* ============================================
-   按钮样式 - 修复颜色对比度
+   按钮样式 - 渐变增强版
    ============================================ */
-.button {
-    -fx-background-color: #667eea;
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-    -fx-font-weight: 600;
-    -fx-padding: 14px 32px;
-    -fx-background-radius: 12px;
+.button-primary {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6, #a78bfa);
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+    -fx-background-radius: 16px;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.4), 15, 0, 0, 4);
-    -fx-transition: all 0.3s ease;
-    -fx-border-width: 0px;
+    -fx-effect: dropshadow(gaussian, #8b5cf666, 20, 0.6, 0, 6);
+    -fx-padding: 14px 28px;
 }
 
-.button:hover {
-    -fx-background-color: #7c8ce5;
-    -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.6), 20, 0, 0, 6);
-    -fx-scale-x: 1.02;
-    -fx-scale-y: 1.02;
+.button-primary:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #8b5cf6, #a78bfa, #c4b5fd);
+    -fx-effect: dropshadow(gaussian, #a78bfa99, 25, 0.7, 0, 10);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
 }
 
-.button:pressed {
-    -fx-scale-x: 0.98;
-    -fx-scale-y: 0.98;
-}
-
-.button:disabled {
-    -fx-background-color: rgba(100, 100, 120, 0.4);
-    -fx-text-fill: rgba(255, 255, 255, 0.4);
-    -fx-effect: none;
-}
-
-/* 次要按钮 */
-.button-secondary {
-    -fx-background-color: rgba(255, 255, 255, 0.15);
-    -fx-border-color: rgba(255, 255, 255, 0.25);
-    -fx-border-width: 1px;
-    -fx-border-radius: 12px;
-    -fx-text-fill: white;
-}
-
-.button-secondary:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.25);
-    -fx-border-color: rgba(102, 126, 234, 0.6);
-}
-
-/* 危险按钮 */
 .button-danger {
-    -fx-background-color: #ef4444;
-    -fx-effect: dropshadow(gaussian, rgba(239, 68, 68, 0.4), 15, 0, 0, 4);
-    -fx-text-fill: white;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #f43f5e, #ec4899, #f43f5e);
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+    -fx-background-radius: 16px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #ec489966, 20, 0.6, 0, 6);
+    -fx-padding: 14px 28px;
 }
 
 .button-danger:hover {
-    -fx-background-color: #f87171;
-    -fx-effect: dropshadow(gaussian, rgba(239, 68, 68, 0.6), 20, 0, 0, 6);
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ec4899, #f43f5e, #fb7185);
+    -fx-effect: dropshadow(gaussian, #f43f5e99, 25, 0.7, 0, 10);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
 }
 
-/* ============================================
-   列表视图样式 - 修复背景色
-   ============================================ */
-.list-view {
-    -fx-background-color: #0f0f19 !important;
-    -fx-control-inner-background: #0f0f19 !important;
-    -fx-background-radius: 16px;
-    -fx-border-radius: 16px;
-    -fx-border-color: rgba(255, 255, 255, 0.15);
-    -fx-border-width: 1px;
-    -fx-padding: 8px;
-}
-
-/* 列表视图的内部容器 */
-.list-view .virtual-flow {
-    -fx-background-color: #0f0f19 !important;
-}
-
-.list-view .virtual-flow .clipped-container {
-    -fx-background-color: #0f0f19 !important;
-}
-
-.list-view .virtual-flow .sheet {
-    -fx-background-color: #0f0f19 !important;
-}
-
-/* 列表项样式 - 所有状态都设置为深色背景 */
-.list-view .list-cell {
-    -fx-background-color: #0f0f19 !important;
-    -fx-text-fill: #ffffff !important;
-    -fx-padding: 16px 20px;
+.button-secondary {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #f8fafc, #f1f5f9);
+    -fx-text-fill: #475569;
     -fx-font-size: 14px;
+    -fx-font-weight: 700;
     -fx-background-radius: 12px;
-    -fx-border-radius: 12px;
     -fx-cursor: hand;
-}
-
-/* 奇数行 */
-.list-view .list-cell:odd {
-    -fx-background-color: #0f0f19 !important;
-}
-
-/* 偶数行 */
-.list-view .list-cell:even {
-    -fx-background-color: #0f0f19 !important;
-}
-
-/* 悬停状态 */
-.list-view .list-cell:hover {
-    -fx-background-color: rgba(102, 126, 234, 0.25) !important;
-    -fx-text-fill: white !important;
-}
-
-.list-view .list-cell:odd:hover,
-.list-view .list-cell:even:hover {
-    -fx-background-color: rgba(102, 126, 234, 0.25) !important;
-}
-
-/* 选中状态 */
-.list-view .list-cell:selected {
-    -fx-background-color: rgba(102, 126, 234, 0.4) !important;
-    -fx-text-fill: white !important;
-    -fx-border-color: rgba(102, 126, 234, 0.6);
-    -fx-border-width: 1px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1.5px;
     -fx-border-radius: 12px;
+    -fx-padding: 10px 18px;
 }
 
-.list-view .list-cell:odd:selected,
-.list-view .list-cell:even:selected {
-    -fx-background-color: rgba(102, 126, 234, 0.4) !important;
+.button-secondary:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #f1f5f9, #e2e8f0);
+    -fx-border-color: #cbd5e1;
+    -fx-effect: dropshadow(gaussian, #8b5cf620, 15, 0.3, 0, 4);
 }
 
-/* 获得焦点时的选中状态 */
-.list-view:focused .list-cell:selected {
-    -fx-background-color: rgba(102, 126, 234, 0.4) !important;
-}
-
-.list-view:focused .list-cell:odd:selected,
-.list-view:focused .list-cell:even:selected {
-    -fx-background-color: rgba(102, 126, 234, 0.4) !important;
-}
-
-.list-view .list-cell:selected .text {
-    -fx-font-weight: 600;
-}
-
-/* 空列表提示 */
-.list-view .placeholder .label {
-    -fx-text-fill: rgba(255, 255, 255, 0.6);
-    -fx-font-size: 14px;
-}
-
-/* 滚动条样式 */
-.list-view .scroll-bar {
-    -fx-background-color: transparent;
-}
-
-.list-view .scroll-bar .thumb {
-    -fx-background-color: rgba(255, 255, 255, 0.2);
-    -fx-background-radius: 10px;
-}
-
-.list-view .scroll-bar .thumb:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.3);
-}
-
-/* ============================================
-   文本区域样式 - 修复对比度
-   ============================================ */
-.text-area {
-    -fx-control-inner-background: #0f0f19;
-    -fx-background-color: #0f0f19;
-    -fx-background-radius: 16px;
-    -fx-border-radius: 16px;
-    -fx-border-color: rgba(255, 255, 255, 0.2);
-    -fx-border-width: 1px;
-    -fx-text-fill: #ffffff;
-    -fx-font-family: "JetBrains Mono", "Consolas", monospace;
+.button-secondary-small {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #fef3c7, #fde68a);
+    -fx-text-fill: #92400e;
     -fx-font-size: 13px;
-    -fx-padding: 16px;
-    -fx-highlight-fill: #667eea;
-    -fx-highlight-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-background-radius: 10px;
+    -fx-cursor: hand;
+    -fx-padding: 8px 14px;
 }
 
-/* 日志区域专用样式 */
-.log-text-area {
-    -fx-control-inner-background: #0f0f19;
-    -fx-background-color: #0f0f19;
-    -fx-text-fill: #ffffff;
+.button-secondary-small:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #fde68a, #fcd34d);
+    -fx-effect: dropshadow(gaussian, #fbbf2440, 15, 0.4, 0, 4);
 }
 
-.log-text-area .content {
-    -fx-background-color: #0f0f19;
+.icon-button {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #f8fafc, #f1f5f9);
+    -fx-text-fill: #64748b;
+    -fx-font-size: 20px;
+    -fx-cursor: hand;
+    -fx-background-radius: 10px;
+    -fx-padding: 6px 10px;
 }
 
-.text-area .content {
-    -fx-background-color: #0f0f19;
-}
-
-.text-area:focused {
-    -fx-border-color: rgba(102, 126, 234, 0.5);
-    -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.2), 10, 0, 0, 0);
-}
-
-/* 滚动面板 */
-.text-area .scroll-pane {
-    -fx-background-color: #0f0f19;
-}
-
-.text-area .scroll-pane .viewport {
-    -fx-background-color: #0f0f19;
-}
-
-/* 确保文本区域内部背景色正确 */
-.text-area .text {
-    -fx-fill: #ffffff;
+.icon-button:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ede9fe, #ddd6fe);
+    -fx-text-fill: #6366f1;
+    -fx-effect: dropshadow(gaussian, #8b5cf630, 15, 0.4, 0, 4);
 }
 
 /* ============================================
-   文本输入框样式
+   状态标签 - 彩色渐变
    ============================================ */
-.text-field {
-    -fx-background-color: rgba(15, 15, 25, 0.8);
-    -fx-background-radius: 12px;
-    -fx-border-radius: 12px;
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-    -fx-border-width: 1px;
-    -fx-text-fill: white;
+.status-label-connected {
+    -fx-font-size: 17px;
+    -fx-font-weight: 800;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #10b981, #34d399);
+}
+
+.status-label-disconnected {
+    -fx-font-size: 17px;
+    -fx-font-weight: 800;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #ef4444, #f87171);
+}
+
+.status-label-waiting {
+    -fx-font-size: 17px;
+    -fx-font-weight: 800;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #f59e0b, #fbbf24);
+}
+
+/* ============================================
+   设置状态提示 - 渐变增强
+   ============================================ */
+.settings-status-success {
     -fx-font-size: 14px;
-    -fx-padding: 12px 16px;
-    -fx-prompt-text-fill: rgba(255, 255, 255, 0.4);
+    -fx-font-weight: 700;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #10b981, #34d399);
 }
 
-.text-field:focused {
-    -fx-border-color: rgba(102, 126, 234, 0.5);
-    -fx-background-color: rgba(25, 25, 40, 0.9);
-}
-
-/* ============================================
-   下拉框样式
-   ============================================ */
-.combo-box {
-    -fx-background-color: rgba(15, 15, 25, 0.8);
-    -fx-background-radius: 12px;
-    -fx-border-radius: 12px;
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-    -fx-border-width: 1px;
-    -fx-text-fill: white;
-}
-
-.combo-box:focused {
-    -fx-border-color: rgba(102, 126, 234, 0.5);
-}
-
-.combo-box .list-cell {
-    -fx-text-fill: white;
-    -fx-background-color: transparent;
-}
-
-.combo-box-popup .list-view {
-    -fx-background-color: rgba(20, 20, 30, 0.95);
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-}
-
-.combo-box-popup .list-view .list-cell {
-    -fx-text-fill: white;
-    -fx-padding: 10px 16px;
-}
-
-.combo-box-popup .list-view .list-cell:hover {
-    -fx-background-color: rgba(102, 126, 234, 0.3);
-}
-
-/* 白色文字下拉框 - 用于视频设置 */
-.white-text-combobox {
-    -fx-text-fill: white;
-    -fx-prompt-text-fill: white;
-}
-
-/* 下拉框按钮区域（显示当前选中的值） */
-.white-text-combobox > .list-cell {
-    -fx-text-fill: white !important;
-    -fx-background-color: transparent;
-}
-
-/* 下拉框内部文字 */
-.white-text-combobox .list-cell {
-    -fx-text-fill: white !important;
-    -fx-background-color: transparent;
-}
-
-/* 选中的list-cell */
-.white-text-combobox .list-cell:selected {
-    -fx-text-fill: white !important;
-    -fx-background-color: rgba(102, 126, 234, 0.3);
-}
-
-/* 下拉框的label文字 */
-.white-text-combobox .label {
-    -fx-text-fill: white !important;
-}
-
-/* 直接设置ComboBox的cell factory文字颜色 */
-.combo-box-base > .list-cell {
-    -fx-text-fill: white;
-}
-
-/* 下拉弹出框样式 */
-.combo-box-popup > .list-view {
-    -fx-background-color: rgba(20, 20, 30, 0.95);
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-    -fx-border-width: 1px;
-}
-
-.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
-    -fx-text-fill: white;
-    -fx-background-color: transparent;
-}
-
-.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:hover {
-    -fx-text-fill: white;
-    -fx-background-color: rgba(102, 126, 234, 0.5);
-}
-
-.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected {
-    -fx-text-fill: white;
-    -fx-background-color: rgba(102, 126, 234, 0.7);
-}
-
-/* ============================================
-   单选按钮样式
-   ============================================ */
-.radio-button {
-    -fx-text-fill: white;
+.settings-status-error {
     -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #ef4444, #f87171);
 }
 
-.radio-button .radio {
-    -fx-background-color: rgba(255, 255, 255, 0.1);
-    -fx-border-color: rgba(255, 255, 255, 0.3);
-    -fx-border-radius: 50%;
-    -fx-border-width: 2px;
-}
-
-.radio-button:selected .radio {
-    -fx-background-color: #667eea;
-    -fx-border-color: #667eea;
-}
-
-.radio-button .dot {
-    -fx-background-color: white;
-    -fx-background-radius: 50%;
-}
-
-/* ============================================
-   标签样式
-   ============================================ */
-.label {
-    -fx-text-fill: rgba(255, 255, 255, 0.8);
+.settings-status-info {
     -fx-font-size: 14px;
-}
-
-.label-title {
-    -fx-font-size: 16px;
     -fx-font-weight: 600;
-    -fx-text-fill: white;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+}
+
+.settings-status-processing {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #06b6d4, #0ea5e9);
+}
+
+.settings-status-warning {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #f59e0b, #fbbf24);
+}
+
+.settings-hint {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #8b5cf6, #a78bfa);
+    -fx-font-style: italic;
+}
+
+/* ============================================
+   标签样式 - 渐变增强
+   ============================================ */
+.label-primary {
+    -fx-font-size: 17px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #6366f1;
+}
+
+.label-secondary {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #64748b;
 }
 
 .label-muted {
-    -fx-text-fill: rgba(255, 255, 255, 0.5);
-    -fx-font-size: 13px;
-}
-
-.label-status {
     -fx-font-size: 14px;
     -fx-font-weight: 500;
-    -fx-padding: 6px 14px;
-    -fx-background-radius: 20px;
-}
-
-.label-status.connected {
-    -fx-text-fill: #10b981;
-    -fx-background-color: rgba(16, 185, 129, 0.15);
-}
-
-.label-status.disconnected {
-    -fx-text-fill: #ef4444;
-    -fx-background-color: rgba(239, 68, 68, 0.15);
-}
-
-.label-status.waiting {
-    -fx-text-fill: #f59e0b;
-    -fx-background-color: rgba(245, 158, 11, 0.15);
+    -fx-text-fill: #94a3b8;
 }
 
 /* ============================================
-   状态指示器
+   IP 地址和端口 - 渐变效果
+   ============================================ */
+.ip-address-label {
+    -fx-font-size: 18px;
+    -fx-font-weight: 800;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #8b5cf6, #a78bfa);
+    -fx-font-family: "JetBrains Mono", monospace;
+}
+
+.port-label {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-font-family: "JetBrains Mono", monospace;
+}
+
+/* ============================================
+   网络模式标签
+   ============================================ */
+.network-mode-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #64748b;
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 8px;
+    -fx-padding: 6px 12px;
+}
+
+.network-mode-label-active {
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #ffffff;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-background-radius: 8px;
+    -fx-padding: 6px 12px;
+    -fx-effect: dropshadow(gaussian, #8b5cf640, 10, 0.4, 0, 2);
+}
+
+/* ============================================
+   输入框 - 渐变边框
+   ============================================ */
+.text-field {
+    -fx-background-color: #f8fafc;
+    -fx-background-radius: 12px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 2px;
+    -fx-border-radius: 12px;
+    -fx-text-fill: #1e293b;
+    -fx-prompt-text-fill: #94a3b8;
+    -fx-font-size: 14px;
+    -fx-padding: 12px 16px;
+}
+
+.text-field:focused {
+    -fx-background-color: #ffffff;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-effect: dropshadow(gaussian, #8b5cf630, 15, 0.5, 0, 4);
+}
+
+.setting-combobox {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 2px;
+    -fx-border-radius: 12px;
+    -fx-text-fill: #1e293b;
+    -fx-font-size: 14px;
+    -fx-padding: 12px 16px;
+}
+
+.setting-combobox:focused {
+    -fx-background-color: #ffffff;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-effect: dropshadow(gaussian, #8b5cf630, 15, 0.5, 0, 4);
+}
+
+.setting-combobox .arrow {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-background-radius: 4px;
+    -fx-padding: 4px 6px;
+}
+
+.setting-combobox .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8px;
+    -fx-padding: 4px;
+}
+
+.setting-combobox .arrow-button:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ede9fe, #ddd6fe);
+}
+
+.setting-combobox .list-view {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ffffff, #f8fafc);
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, #c7d2fe, #a5b4fc);
+    -fx-border-width: 2px;
+    -fx-border-radius: 12px;
+    -fx-padding: 6px;
+    -fx-effect: dropshadow(gaussian, #8b5cf630, 20, 0.4, 0, 8);
+}
+
+.setting-combobox .list-cell {
+    -fx-text-fill: #1e293b;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-background-radius: 8px;
+    -fx-padding: 10px 14px;
+}
+
+.setting-combobox .list-cell:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ede9fe, #ddd6fe);
+    -fx-text-fill: #6366f1;
+}
+
+.setting-combobox .list-cell:selected {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 700;
+}
+
+/* 下拉列表项悬停效果 */
+.list-view .list-cell {
+    -fx-background-radius: 8px;
+    -fx-padding: 10px 14px;
+}
+
+.list-view .list-cell:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ede9fe, #ddd6fe);
+    -fx-text-fill: #6366f1;
+}
+
+.list-view .list-cell:selected {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 700;
+}
+
+/* ============================================
+   设备列表 - 渐变效果
+   ============================================ */
+.device-list-view {
+    -fx-background-color: #f5f3ff80;
+    -fx-background-radius: 16px;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, #c7d2fe, #a5b4fc);
+    -fx-border-width: 2px;
+    -fx-border-radius: 16px;
+    -fx-padding: 10px;
+}
+
+.device-list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #475569;
+    -fx-font-size: 15px;
+    -fx-padding: 14px 18px;
+    -fx-background-radius: 10px;
+}
+
+.device-list-view .list-cell:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ede9fe, #ddd6fe);
+    -fx-text-fill: #6366f1;
+}
+
+.device-list-view .list-cell:selected {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 700;
+    -fx-effect: dropshadow(gaussian, #8b5cf640, 15, 0.4, 0, 4);
+}
+
+.list-placeholder {
+    -fx-font-size: 14px;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #94a3b8, #cbd5e1);
+    -fx-font-style: italic;
+}
+
+/* ============================================
+   日志区域 - 渐变高亮
+   ============================================ */
+.log-text-area {
+    -fx-control-inner-background: #f8fafc;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #f8fafc, #f1f5f9);
+    -fx-background-radius: 16px;
+    -fx-border-radius: 16px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 2px;
+    -fx-text-fill: #374151;
+    -fx-font-family: "JetBrains Mono", "Consolas", monospace;
+    -fx-font-size: 13px;
+    -fx-highlight-fill: linear-gradient(from 0% 0% to 100% 100%, #8b5cf6, #a78bfa);
+    -fx-highlight-text-fill: #ffffff;
+    -fx-padding: 14px;
+}
+
+.log-text-area .content {
+    -fx-background-color: #f8fafc;
+}
+
+/* ============================================
+   状态指示器 - 光晕效果
    ============================================ */
 .status-indicator {
-    -fx-min-width: 12px;
-    -fx-min-height: 12px;
-    -fx-max-width: 12px;
-    -fx-max-height: 12px;
-    -fx-background-radius: 50%;
-}
-
-.status-indicator.connected {
-    -fx-background-color: #10b981;
-    -fx-effect: dropshadow(gaussian, #10b981, 10, 0, 0, 0);
-}
-
-.status-indicator.disconnected {
-    -fx-background-color: #ef4444;
-}
-
-.status-indicator.waiting {
-    -fx-background-color: #f59e0b;
-    -fx-effect: dropshadow(gaussian, #f59e0b, 8, 0, 0, 0);
-}
-
-/* 脉冲动画效果 */
-.status-indicator.pulse {
-    -fx-animation: pulse 2s infinite;
+    -fx-effect: dropshadow(gaussian, #10b981aa, 15, 0.6, 0, 0);
 }
 
 /* ============================================
-   分隔线
-   ============================================ */
-.separator .line {
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-    -fx-border-width: 1px;
-}
-
-/* ============================================
-   滚动条样式
+   滚动条 - 渐变样式
    ============================================ */
 .scroll-bar {
-    -fx-background-color: transparent;
-    -fx-padding: 0 4px;
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 10px;
 }
 
 .scroll-bar .thumb {
-    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #cbd5e1, #94a3b8);
     -fx-background-radius: 10px;
 }
 
 .scroll-bar .thumb:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.3);
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #94a3b8, #64748b);
 }
 
 .scroll-bar .increment-button,
@@ -563,148 +472,236 @@
 }
 
 /* ============================================
-   设备卡片
+   分割线 - 渐变效果
    ============================================ */
-.device-card {
-    -fx-background-color: rgba(20, 20, 30, 0.6);
-    -fx-background-radius: 16px;
-    -fx-border-radius: 16px;
-    -fx-border-color: rgba(255, 255, 255, 0.08);
-    -fx-border-width: 1px;
-    -fx-padding: 20px;
-    -fx-cursor: hand;
-    -fx-transition: all 0.3s ease;
-}
-
-.device-card:hover {
-    -fx-background-color: rgba(30, 30, 45, 0.8);
-    -fx-border-color: rgba(102, 126, 234, 0.4);
-    -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.2), 20, 0, 0, 8);
-    -fx-translate-y: -2px;
-}
-
-.device-card.selected {
-    -fx-background-color: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-    -fx-border-color: rgba(102, 126, 234, 0.6);
+.separator .line {
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, #e2e8f0, #cbd5e1, #e2e8f0);
     -fx-border-width: 2px;
 }
 
 /* ============================================
-   IP地址显示
+   工具提示 - 渐变背景
    ============================================ */
-.ip-display {
-    -fx-font-family: "JetBrains Mono", monospace;
-    -fx-font-size: 24px;
-    -fx-font-weight: 600;
-    -fx-text-fill: #00d4ff;
-    -fx-padding: 12px 24px;
-    -fx-background-color: rgba(0, 212, 255, 0.1);
-    -fx-background-radius: 12px;
-    -fx-border-color: rgba(0, 212, 255, 0.3);
-    -fx-border-width: 1px;
-    -fx-border-radius: 12px;
-}
-
-/* ============================================
-   信息面板
-   ============================================ */
-.info-panel {
-    -fx-background-color: rgba(15, 15, 25, 0.6);
-    -fx-background-radius: 16px;
-    -fx-padding: 20px;
-    -fx-spacing: 12px;
-}
-
-.info-row {
-    -fx-spacing: 12px;
-    -fx-alignment: center-left;
-}
-
-.info-label {
-    -fx-text-fill: rgba(255, 255, 255, 0.5);
-    -fx-font-size: 13px;
-    -fx-min-width: 80px;
-}
-
-.info-value {
-    -fx-text-fill: white;
+.tooltip {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-text-fill: #ffffff;
     -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 10px;
+    -fx-padding: 12px 16px;
+    -fx-effect: dropshadow(gaussian, #8b5cf660, 15, 0.5, 0, 4);
+}
+
+/* ============================================
+   设置描述文字 - 渐变效果
+   ============================================ */
+.setting-description {
+    -fx-font-size: 13px;
     -fx-font-weight: 500;
+    -fx-text-fill: linear-gradient(from 0% 0% to 100% 100%, #94a3b8, #cbd5e1);
 }
 
 /* ============================================
-   动画效果
+   动画效果 - 增强脉冲
    ============================================ */
-@keyframes fadeIn {
-    from { -fx-opacity: 0; -fx-translate-y: 10px; }
-    to { -fx-opacity: 1; -fx-translate-y: 0; }
-}
-
-@keyframes pulse {
-    0%, 100% { -fx-opacity: 1; }
-    50% { -fx-opacity: 0.5; }
-}
-
-@keyframes glow {
-    0%, 100% { -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.3), 20, 0, 0, 0); }
-    50% { -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.6), 30, 0, 0, 0); }
-}
-
-.fade-in {
-    -fx-animation: fadeIn 0.5s ease-out;
-}
-
-.glow-effect {
-    -fx-animation: glow 2s infinite;
+.pulse-animation {
+    -fx-effect: dropshadow(gaussian, #8b5cf6aa, 20, 0.7, 0, 0);
 }
 
 /* ============================================
-   图标按钮
+   响应式布局辅助
    ============================================ */
-.icon-button {
-    -fx-background-color: rgba(255, 255, 255, 0.1);
-    -fx-background-radius: 12px;
-    -fx-min-width: 44px;
-    -fx-min-height: 44px;
-    -fx-max-width: 44px;
-    -fx-max-height: 44px;
-    -fx-cursor: hand;
-    -fx-text-fill: white;
+.vbox-spacer {
+    -fx-vgrow: always;
 }
 
-.icon-button:hover {
-    -fx-background-color: rgba(102, 126, 234, 0.3);
-    -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.3), 10, 0, 0, 0);
+.hbox-spacer {
+    -fx-hgrow: always;
 }
 
 /* ============================================
-   加载动画
+   卡片标题区域 - 渐变分割线
    ============================================ */
-.loading-spinner {
-    -fx-fill: transparent;
-    -fx-stroke: #00d4ff;
-    -fx-stroke-width: 3px;
+.card-header {
+    -fx-padding: 0 0 18px 0;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, #c7d2fe, #a5b4fc);
+    -fx-border-width: 0 0 2px 0;
 }
 
 /* ============================================
-   对话框样式
+   毛玻璃效果 - 增强版
+   ============================================ */
+.frosted-glass {
+    -fx-background-color: #ffffffcc;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: #ffffff60;
+    -fx-border-width: 1.5px;
+    -fx-effect: dropshadow(gaussian, #8b5cf620, 20, 0.3, 0, 6);
+}
+
+/* ============================================
+   单选按钮样式
+   ============================================ */
+.radio-button {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #374151;
+}
+
+.radio-button .radio {
+    -fx-background-color: #f1f5f9;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 2px;
+    -fx-border-radius: 15px;
+    -fx-background-radius: 15px;
+}
+
+.radio-button:selected .radio .dot {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-background-radius: 8px;
+}
+
+/* ============================================
+   对话框样式 - 增强版
    ============================================ */
 .dialog-pane {
-    -fx-background-color: #0a0a0f;
+    -fx-background-color: transparent;
 }
 
-.dialog-pane .label {
-    -fx-text-fill: white;
+.network-dialog-pane {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ffffff, #f8fafc);
+    -fx-background-radius: 20px;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, #8b5cf640, 30, 0.5, 0, 8);
 }
 
-.dialog-pane .button-bar .button {
-    -fx-padding: 10px 24px;
+.network-dialog-pane .header-panel {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-background-radius: 20px 20px 0 0;
+    -fx-padding: 20px 24px;
+    -fx-border-radius: 20px 20px 0 0;
 }
 
-/* ============================================
-   提示文字
-   ============================================ */
-.prompt-text {
-    -fx-text-fill: rgba(255, 255, 255, 0.4);
-    -fx-font-size: 13px;
+.network-dialog-pane .header-panel .label {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+}
+
+.network-dialog-pane .content {
+    -fx-background-color: transparent;
+    -fx-padding: 24px;
+}
+
+.network-dialog-content {
+    -fx-background-color: transparent;
+    -fx-padding: 10px;
+}
+
+/* 设置弹窗特殊样式 */
+.network-dialog-pane .radio-button {
+    -fx-padding: 14px 0;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.network-dialog-pane .text-field {
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-padding: 14px 18px;
+    -fx-pref-width: 450px;
+    -fx-max-width: 450px;
+}
+
+.network-dialog-pane .combo-box {
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-padding: 14px 18px;
+    -fx-pref-width: 450px;
+    -fx-max-width: 450px;
+}
+
+.network-dialog-pane .label {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #374151;
+    -fx-padding: 10px 0 6px 0;
+}
+
+.network-dialog-pane .dialog-label {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #374151;
+    -fx-padding: 10px 0 6px 0;
+}
+
+.alert-dialog {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ffffff, #f8fafc);
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, #c7d2fe, #a5b4fc);
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, #8b5cf640, 30, 0.5, 0, 8);
+}
+
+.alert-dialog .header-panel {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-background-radius: 16px 16px 0 0;
+    -fx-padding: 16px 20px;
+}
+
+.alert-dialog .header-panel .label {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 18px;
+    -fx-font-weight: 800;
+}
+
+.alert-dialog .content {
+    -fx-text-fill: #374151;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500;
+    -fx-padding: 20px;
+}
+
+/* 对话框按钮 */
+.dialog-pane .button {
+    -fx-background-radius: 12px;
+    -fx-font-weight: 700;
+    -fx-padding: 12px 24px;
+}
+
+.dialog-pane .button:hover {
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+/* 对话框按钮区域 */
+.dialog-pane .button-bar {
+    -fx-padding: 16px 24px;
+    -fx-spacing: 12px;
+    -fx-background-color: #f8fafc;
+    -fx-background-radius: 0 0 20px 20px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1px 0 0 0;
+}
+
+/* 单选按钮选中状态 */
+.radio-button:selected .radio {
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #8b5cf6);
+    -fx-border-width: 3px;
+}
+
+/* 文本框在对话框中的样式 */
+.dialog-pane .text-field {
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-padding: 14px 18px;
+}
+
+/* 下拉列表在对话框中的样式 */
+.dialog-pane .combo-box {
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-padding: 14px 18px;
 }

@@ -31,10 +31,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(localProperties.getProperty("signing.storeFile", ""))
-            storePassword = localProperties.getProperty("signing.storePassword", "")
-            keyAlias = localProperties.getProperty("signing.keyAlias", "")
-            keyPassword = localProperties.getProperty("signing.keyPassword", "")
+            storeFile = file(System.getenv("KEYSTORE_FILE") ?: localProperties.getProperty("KEYSTORE_FILE", ""))
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: localProperties.getProperty("KEYSTORE_PASSWORD", "")
+            keyAlias = System.getenv("KEY_ALIAS") ?: localProperties.getProperty("KEY_ALIAS", "")
+            keyPassword = System.getenv("KEY_PASSWORD") ?: localProperties.getProperty("KEY_PASSWORD", "")
         }
     }
 
