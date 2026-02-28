@@ -245,9 +245,9 @@ public class MainWindow extends Application {
         startButton = createStyledButton("▶ 开始投屏", false);
         startButton.setDisable(false);
         startButton.setOnAction(e -> startCasting());
-        
+
         stopButton = createStyledButton("⏹ 停止投屏", true);
-        stopButton.setDisable(true);
+        stopButton.setDisable(false); // 断开按钮始终可点击
         stopButton.setOnAction(e -> stopCasting());
         
         buttonBox.getChildren().addAll(startButton, stopButton);
@@ -599,15 +599,20 @@ public class MainWindow extends Application {
         // 连接回调
         castClient.setOnConnected(() -> Platform.runLater(() -> {
             updateStatus("已连接", "connected");
+            startButton.setDisable(true);
             log("✅ 连接成功！", "success");
         }));
         castClient.setOnDisconnected(() -> Platform.runLater(() -> {
-            updateStatus("已断开", "disconnected");
+            System.out.println("[DEBUG] onDisconnected 回调被触发");
             log("❌ 连接已断开", "warning");
+            // 连接断开时停止屏幕捕获和清理资源（会更新UI状态）
+            stopCastingInternal("已断开");
         }));
         castClient.setOnError(msg -> Platform.runLater(() -> {
+            System.out.println("[DEBUG] onError 回调被触发: " + msg);
             log("❌ 错误：" + msg, "error");
-            updateStatus("连接错误", "error");
+            // 连接出错时停止屏幕捕获和清理资源
+            stopCastingInternal("连接错误");
         }));
         
         // 屏幕捕获回调
@@ -775,15 +780,13 @@ public class MainWindow extends Application {
             // 设置客户端视频参数
             castClient.setVideoParams(width, height, fps);
             
-            // 设置连接成功回调
+            // 设置连接成功回调（仅用于更新 UI）
             castClient.setOnConnected(() -> {
                 Platform.runLater(() -> {
                     deviceLabel.setText(deviceName + " (" + resolution + ")");
-                    startButton.setDisable(true);
-                    stopButton.setDisable(false);
                     updateStatus("已连接", "connected");
                     log("▶️ 投屏已开始", "success");
-                    
+
                     // 连接成功后停止扫描设备列表
                     if (deviceDiscovery != null) {
                         deviceDiscovery.stop();
@@ -791,21 +794,17 @@ public class MainWindow extends Application {
                     }
                 });
             });
-            
-            // 设置连接断开回调
-            castClient.setOnDisconnected(() -> {
-                Platform.runLater(() -> {
-                    log("⚠️ 连接已断开", "warning");
-                });
-            });
-            
+
             // 异步连接
             try {
                 castClient.connect(ip, 8888);
                 log("⏳ 正在连接...", "info");
+                // 连接开始后禁用开始按钮，防止重复点击
+                startButton.setDisable(true);
             } catch (Exception e) {
                 log("❌ 连接失败：" + e.getMessage(), "error");
                 showAlert("连接失败：" + e.getMessage());
+                startButton.setDisable(false);
                 screenCapture.stop();
             }
             
@@ -816,29 +815,67 @@ public class MainWindow extends Application {
     }
     
     /**
-     * 停止投屏
+     * 停止投屏 - 无论当前连接状态如何都可以调用
      */
     private void stopCasting() {
-        screenCapture.stop();
-        castClient.disconnect();
-        
+        stopCastingInternal("等待连接...");
+        log("⏹️ 投屏已停止", "warning");
+    }
+
+    /**
+     * 内部停止方法 - 执行实际的停止逻辑
+     * @param statusText 状态文本（"已断开"或"等待连接..."）
+     */
+    private void stopCastingInternal(String statusText) {
+        log("⏹️ 正在停止投屏...", "info");
+        System.out.println("[DEBUG] stopCastingInternal 被调用，状态: " + statusText);
+
+        // 停止屏幕捕获
+        try {
+            System.out.println("[DEBUG] 正在停止屏幕捕获...");
+            screenCapture.stop();
+            System.out.println("[DEBUG] 屏幕捕获已停止");
+        } catch (Exception e) {
+            System.err.println("[DEBUG] 停止屏幕捕获时出错: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // 断开连接（无论是否已连接都可以安全调用）
+        try {
+            System.out.println("[DEBUG] 正在断开连接...");
+            castClient.disconnect();
+            System.out.println("[DEBUG] 连接已断开");
+        } catch (Exception e) {
+            System.err.println("[DEBUG] 断开连接时出错: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // 重置UI状态
+        System.out.println("[DEBUG] 正在重置UI状态...");
         startButton.setDisable(false);
-        stopButton.setDisable(true);
         deviceLabel.setText("未选择设备");
-        updateStatus("等待连接...", "waiting");
-        
+
+        // 根据传入的状态文本更新状态
+        if ("已断开".equals(statusText)) {
+            updateStatus("已断开", "disconnected");
+        } else if ("连接错误".equals(statusText)) {
+            updateStatus("连接错误", "error");
+        } else {
+            updateStatus("等待连接...", "waiting");
+        }
+        System.out.println("[DEBUG] UI状态已重置为: " + statusText);
+
         // 停止投屏后重新启动设备发现
-        if (deviceDiscovery != null) {
+        if (deviceDiscovery != null && !deviceDiscovery.isRunning()) {
             deviceDiscovery.start();
             log("🔍 已重新开始扫描设备", "info");
         }
-        
+
         // 清空设置状态
         if (settingsStatusLabel != null) {
             settingsStatusLabel.setText("");
         }
-        
-        log("⏹️ 投屏已停止", "warning");
+        System.out.println("[DEBUG] stopCastingInternal 执行完成");
     }
     
     /**

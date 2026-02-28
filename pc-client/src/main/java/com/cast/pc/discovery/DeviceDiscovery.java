@@ -105,28 +105,35 @@ public class DeviceDiscovery {
      */
     public void stop() {
         running = false;
-        
+
         if (scheduledExecutor != null) {
             scheduledExecutor.shutdown();
             scheduledExecutor = null;
         }
-        
+
         if (scanExecutor != null) {
             scanExecutor.shutdown();
             scanExecutor = null;
         }
-        
+
         if (executor != null) {
             executor.shutdown();
             executor = null;
         }
-        
+
         if (socket != null && !socket.isClosed()) {
             socket.close();
             socket = null;
         }
-        
+
         System.out.println("设备发现服务已停止");
+    }
+
+    /**
+     * 检查发现服务是否正在运行
+     */
+    public boolean isRunning() {
+        return running;
     }
     
     /**

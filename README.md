@@ -18,9 +18,9 @@
 
 ## 📱 效果展示
 
-| 等待界面 | 投屏中 |
+| 电脑端 | TV端 |
 |:---:|:---:|
-| ![待机](https://via.placeholder.com/640x360/1a1a2e/00d4ff?text=等待连接) | ![投屏](https://via.placeholder.com/640x360/16213e/a855f7?text=投屏显示) |
+| <img src="screenshots/Screenshot-PC.png" height="400"> | <img src="screenshots/Screenshot-TV.png" height="400"> |
 
 ---
 

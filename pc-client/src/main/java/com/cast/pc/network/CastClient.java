@@ -17,26 +17,31 @@ import java.util.function.Consumer;
 
 /**
  * 投屏网络客户端
- * 
+ *
  * 使用Netty实现TCP连接，传输视频流数据
  */
 public class CastClient {
-    
+
     private EventLoopGroup workerGroup;
     private Channel channel;
     private AtomicBoolean connected = new AtomicBoolean(false);
-    
+    private AtomicBoolean connecting = new AtomicBoolean(false); // 连接中状态
+
     private Runnable onConnected;
     private Runnable onDisconnected;
     private Consumer<String> onError;
-    
+
     // 视频参数
     private int videoWidth = 1920;
     private int videoHeight = 1080;
     private int frameRate = 30;
-    
+
     // 连接超时时间（秒）
     private static final int CONNECT_TIMEOUT = 5;
+    // 连接超时任务
+    private java.util.concurrent.ScheduledFuture<?> connectTimeoutTask;
+    private static final java.util.concurrent.ScheduledExecutorService timeoutExecutor =
+            java.util.concurrent.Executors.newSingleThreadScheduledExecutor();
     
     /**
      * 设置连接成功回调
@@ -69,16 +74,32 @@ public class CastClient {
     
     /**
      * 连接到服务器
-     * 
+     *
      * @param host 服务器地址
      * @param port 服务器端口
      */
     public void connect(String host, int port) throws Exception {
-        if (connected.get()) {
+        if (connected.get() || connecting.get()) {
+            System.out.println("已有连接或正在连接中，跳过本次连接请求");
             return;
         }
 
+        connecting.set(true);
         System.out.println("正在连接到 " + host + ":" + port + "...");
+
+        // 启动10秒连接超时定时器
+        final String targetHost = host;
+        final int targetPort = port;
+        connectTimeoutTask = timeoutExecutor.schedule(() -> {
+            if (connecting.get() && !connected.get()) {
+                System.err.println("连接超时（10秒），自动断开");
+                if (onError != null) {
+                    onError.accept("连接超时（10秒），请检查TV端是否正常运行");
+                }
+                // 强制断开连接
+                forceDisconnect();
+            }
+        }, 10, TimeUnit.SECONDS);
 
         workerGroup = new NioEventLoopGroup();
 
@@ -109,7 +130,14 @@ public class CastClient {
         ChannelFuture future = bootstrap.connect(host, port);
         future.addListener((ChannelFutureListener) f -> {
             if (f.isSuccess()) {
+                // 取消超时任务
+                if (connectTimeoutTask != null) {
+                    connectTimeoutTask.cancel(false);
+                    connectTimeoutTask = null;
+                }
+
                 channel = f.channel();
+                connecting.set(false);
                 connected.set(true);
                 System.out.println("已连接到服务器: " + host + ":" + port);
 
@@ -122,40 +150,115 @@ public class CastClient {
 
                 // 添加关闭监听器
                 channel.closeFuture().addListener(closeFuture -> {
-                    System.out.println("连接已关闭");
-                    disconnect();
+                    System.out.println("[DEBUG] closeFuture 监听器: 连接已关闭");
+                    // 取消超时任务
+                    if (connectTimeoutTask != null) {
+                        connectTimeoutTask.cancel(false);
+                        connectTimeoutTask = null;
+                    }
+                    // 注意：不在这里清理资源，让 channelInactive 处理
+                    // 只清理 workerGroup，不设置 connected 状态
+                    try {
+                        if (workerGroup != null) {
+                            workerGroup.shutdownGracefully();
+                            workerGroup = null;
+                        }
+                    } catch (Exception e) {
+                        System.err.println("关闭workerGroup时出错: " + e.getMessage());
+                    }
                 });
             } else {
                 System.err.println("连接失败: " + f.cause().getMessage());
-                disconnect();
+                // 取消超时任务
+                if (connectTimeoutTask != null) {
+                    connectTimeoutTask.cancel(false);
+                    connectTimeoutTask = null;
+                }
+                // 连接失败时触发错误回调
+                if (onError != null) {
+                    onError.accept("连接失败: " + f.cause().getMessage());
+                }
+                forceDisconnect();
             }
         });
     }
     
     /**
-     * 断开连接
+     * 断开连接 - 无论连接状态如何都可以调用，不会报错
      */
     public void disconnect() {
-        if (!connected.get()) {
-            return;
+        System.out.println("[DEBUG] disconnect() 被调用");
+        // 取消超时任务
+        if (connectTimeoutTask != null) {
+            connectTimeoutTask.cancel(false);
+            connectTimeoutTask = null;
         }
-        
-        connected.set(false);
-        
-        if (channel != null && channel.isActive()) {
-            channel.close();
-        }
-        
-        if (workerGroup != null) {
-            workerGroup.shutdownGracefully();
-            workerGroup = null;
-        }
-        
-        System.out.println("已断开连接");
-        
-        if (onDisconnected != null) {
+
+        // 保存状态，然后清理资源并触发回调
+        boolean wasConnectedOrConnecting = connected.get() || connecting.get();
+        cleanupResources();
+
+        // 触发断开回调（如果之前是连接状态）
+        if (wasConnectedOrConnecting && onDisconnected != null) {
+            System.out.println("[DEBUG] disconnect: 触发 onDisconnected 回调");
             onDisconnected.run();
         }
+    }
+
+    /**
+     * 强制断开连接（内部使用）
+     */
+    private void forceDisconnect() {
+        boolean wasConnected = connected.get();
+        boolean wasConnecting = connecting.get();
+        boolean wasConnectedOrConnecting = wasConnected || wasConnecting;
+
+        System.out.println("[DEBUG] forceDisconnect: wasConnected=" + wasConnected +
+                           ", wasConnecting=" + wasConnecting +
+                           ", willTriggerCallback=" + wasConnectedOrConnecting);
+
+        // 先清理资源
+        cleanupResources();
+
+        // 只有之前有连接或正在连接时才触发回调
+        if (wasConnectedOrConnecting && onDisconnected != null) {
+            System.out.println("[DEBUG] 触发 onDisconnected 回调");
+            onDisconnected.run();
+        } else {
+            System.out.println("[DEBUG] 不触发 onDisconnected 回调: wasConnectedOrConnecting=" +
+                               wasConnectedOrConnecting + ", onDisconnected=" + (onDisconnected != null));
+        }
+    }
+
+    /**
+     * 只清理资源，不触发回调
+     */
+    private void cleanupResources() {
+        System.out.println("[DEBUG] cleanupResources: 清理资源");
+
+        connected.set(false);
+        connecting.set(false);
+
+        try {
+            if (channel != null && channel.isActive()) {
+                channel.close();
+            }
+        } catch (Exception e) {
+            System.err.println("关闭channel时出错: " + e.getMessage());
+        }
+
+        try {
+            if (workerGroup != null) {
+                workerGroup.shutdownGracefully();
+                workerGroup = null;
+            }
+        } catch (Exception e) {
+            System.err.println("关闭workerGroup时出错: " + e.getMessage());
+        }
+
+        channel = null;
+
+        System.out.println("[DEBUG] cleanupResources: 资源已清理");
     }
     
     /**
@@ -208,6 +311,13 @@ public class CastClient {
     public boolean isConnected() {
         return connected.get() && channel != null && channel.isActive();
     }
+
+    /**
+     * 检查是否正在连接中
+     */
+    public boolean isConnecting() {
+        return connecting.get();
+    }
     
     /**
      * 客户端处理器
@@ -255,9 +365,31 @@ public class CastClient {
         
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("[DEBUG] channelInactive 被调用");
+            // 保存状态，然后清理并触发回调
+            boolean wasConnected = connected.get();
+            System.out.println("[DEBUG] channelInactive: wasConnected=" + wasConnected);
+
+            // 清理资源（关闭channel等）
             connected.set(false);
-            if (onDisconnected != null) {
+            connecting.set(false);
+
+            try {
+                if (channel != null && channel.isActive()) {
+                    channel.close();
+                }
+            } catch (Exception e) {
+                System.err.println("关闭channel时出错: " + e.getMessage());
+            }
+
+            channel = null;
+
+            // 触发断开回调（如果之前是连接状态）
+            if (wasConnected && onDisconnected != null) {
+                System.out.println("[DEBUG] channelInactive: 触发 onDisconnected 回调");
                 onDisconnected.run();
+            } else {
+                System.out.println("[DEBUG] channelInactive: 不触发回调，wasConnected=" + wasConnected);
             }
         }
     }

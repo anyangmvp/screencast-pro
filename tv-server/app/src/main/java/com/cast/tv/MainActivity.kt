@@ -38,10 +38,10 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * TV端主Activity - 现代化深色玻璃拟态设计
+ * TV 端主 Activity - 现代化深色玻璃拟态设计
  * 
- * 设计风格: Dark Glassmorphism
- * 主色调: 深蓝紫渐变 + 青色点缀
+ * 设计风格：Dark Glassmorphism
+ * 主色调：深蓝紫渐变 + 青色点缀
  */
 class MainActivity : ComponentActivity() {
     
@@ -104,12 +104,17 @@ class MainActivity : ComponentActivity() {
             Timber.plant(Timber.DebugTree())
         }
         
-        // 获取IP地址
+        // 获取 IP 地址
         serverIp = getLocalIpAddress()
-        Timber.d("本机IP地址: $serverIp")
+        Timber.d("本机 IP 地址：$serverIp")
         
-        // 启动服务
-        startServices()
+        // 设置视频帧接收回调
+        onVideoFrameReceived = { data, timestamp ->
+            videoDecoder?.decodeFrame(data, timestamp)
+        }
+        
+        // 监听连接状态
+        setupConnectionStateListener()
         
         setContent {
             CastTVTheme {
@@ -118,14 +123,14 @@ class MainActivity : ComponentActivity() {
                     if (showVideo) {
                         VideoSurface(
                             onSurfaceCreated = { surface ->
-                                Timber.d("Surface已创建，初始化解码器")
+                                Timber.d("Surface 已创建，初始化解码器")
                                 videoDecoder = VideoDecoder(surface).apply {
                                     initialize()
                                 }
                                 sharedSurface = surface
                             },
                             onSurfaceDestroyed = {
-                                Timber.d("Surface已销毁，释放解码器")
+                                Timber.d("Surface 已销毁，释放解码器")
                                 videoDecoder?.release()
                                 videoDecoder = null
                                 sharedSurface = null
@@ -133,7 +138,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     
-                    // UI层
+                    // UI 层
                     if (!showVideo || connectionStatus != ConnectionStatus.CONNECTED) {
                         MainScreen(
                             serverIp = serverIp,
@@ -144,25 +149,40 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        
-        // 设置视频帧接收回调
-        onVideoFrameReceived = { data, timestamp ->
-            videoDecoder?.decodeFrame(data, timestamp)
-        }
+    }
+    
+    override fun onStart() {
+        super.onStart()
+        // 应用进入前台，启动服务
+        (application as CastApplication).startAllServices()
+        Timber.d("MainActivity onStart，启动所有服务")
     }
     
     override fun onResume() {
         super.onResume()
         serverIp = getLocalIpAddress()
+        Timber.d("MainActivity onResume，IP: $serverIp")
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        Timber.d("MainActivity onPause")
+        // 注意：这里不停止服务，因为用户可能只是切换到后台
+        // 只有在 onDestroy 中才停止服务
+    }
+    
+    override fun onStop() {
+        super.onStop()
+        Timber.d("MainActivity onStop")
     }
     
     override fun onDestroy() {
         super.onDestroy()
         
-        Timber.d("MainActivity销毁，断开所有连接")
+        Timber.d("MainActivity 销毁，停止所有服务并释放资源")
         
-        // 停止投屏服务，断开所有连接
-        CastServerService.stop(this)
+        // 停止所有服务（确保退出 App 后不会继续被扫描到）
+        (application as CastApplication).stopAllServices()
         
         // 释放解码器
         videoDecoder?.release()
@@ -173,18 +193,15 @@ class MainActivity : ComponentActivity() {
     
     override fun onBackPressed() {
         super.onBackPressed()
-        Timber.d("用户按下返回键，断开连接")
-        // 返回键也会触发onDestroy，但这里可以立即断开
-        CastServerService.stop(this)
+        Timber.d("用户按下返回键，退出应用")
+        // 按返回键退出应用，会触发 onDestroy 停止服务
+        finish()
     }
     
     /**
-     * 启动后台服务
+     * 设置连接状态监听器
      */
-    private fun startServices() {
-        // 启动投屏接收服务
-        CastServerService.start(this)
-        
+    private fun setupConnectionStateListener() {
         // 监听连接状态
         lifecycleScope.launch {
             CastServerService.connectionState.collect { state ->
@@ -193,7 +210,7 @@ class MainActivity : ComponentActivity() {
                         connectionStatus = ConnectionStatus.CONNECTED
                         connectedDevice = "${state.deviceName} (${state.width}x${state.height})"
                         showVideo = true
-                        Timber.d("设备已连接: ${state.deviceName}，分辨率: ${state.width}x${state.height}，切换到视频显示")
+                        Timber.d("设备已连接：${state.deviceName}，分辨率：${state.width}x${state.height}，切换到视频显示")
                         
                         // 根据连接的分辨率重新初始化解码器
                         sharedSurface?.let { surface ->
@@ -201,7 +218,7 @@ class MainActivity : ComponentActivity() {
                             videoDecoder = VideoDecoder(surface).apply {
                                 initialize(state.width, state.height)
                             }
-                            Timber.d("解码器已重新初始化: ${state.width}x${state.height}")
+                            Timber.d("解码器已重新初始化：${state.width}x${state.height}")
                         }
                     }
                     is CastServerService.ConnectionState.Disconnected -> {
@@ -212,7 +229,7 @@ class MainActivity : ComponentActivity() {
                     }
                     is CastServerService.ConnectionState.Error -> {
                         connectionStatus = ConnectionStatus.ERROR
-                        Timber.e("连接错误: ${state.message}")
+                        Timber.e("连接错误：${state.message}")
                     }
                 }
             }
@@ -220,7 +237,7 @@ class MainActivity : ComponentActivity() {
     }
     
     /**
-     * 获取本机IP地址
+     * 获取本机 IP 地址
      */
     private fun getLocalIpAddress(): String {
         return try {
@@ -235,14 +252,14 @@ class MainActivity : ComponentActivity() {
                 ip shr 24 and 0xff
             )
         } catch (e: Exception) {
-            Timber.e(e, "获取IP地址失败")
+            Timber.e(e, "获取 IP 地址失败")
             "未知"
         }
     }
 }
 
 /**
- * 视频显示Surface
+ * 视频显示 Surface
  */
 @Composable
 fun VideoSurface(
@@ -267,7 +284,7 @@ fun VideoSurface(
                         width: Int,
                         height: Int
                     ) {
-                        // Surface大小改变
+                        // Surface 大小改变
                     }
                     
                     override fun surfaceDestroyed(holder: SurfaceHolder) {
@@ -413,38 +430,28 @@ fun TitleSection() {
 }
 
 /**
- * 玻璃拟态卡片
+ * 玻璃拟态卡片容器
  */
 @Composable
-fun GlassCard(content: @Composable () -> Unit) {
-    val infiniteTransition = rememberInfiniteTransition(label = "hover")
-    val borderColor by infiniteTransition.animateFloat(
-        initialValue = 0.1f,
-        targetValue = 0.3f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = EaseInOutCubic),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "borderAlpha"
-    )
-    
+fun GlassCard(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth(0.7f)
+        modifier = modifier
             .shadow(
-                elevation = 24.dp,
-                shape = RoundedCornerShape(32.dp),
-                spotColor = MainActivity.ColorPrimaryPurple.copy(alpha = 0.15f),
-                ambientColor = MainActivity.ColorPrimaryPurple.copy(alpha = 0.1f)
+                elevation = 20.dp,
+                spotColor = MainActivity.ColorPrimaryIndigo.copy(alpha = 0.1f),
+                ambientColor = MainActivity.ColorPrimaryIndigo.copy(alpha = 0.1f)
             )
             .background(
                 color = MainActivity.ColorBgCard,
-                shape = RoundedCornerShape(32.dp)
+                shape = RoundedCornerShape(24.dp)
             )
             .border(
                 width = 1.5.dp,
-                color = MainActivity.ColorPrimaryPurple.copy(alpha = borderColor),
-                shape = RoundedCornerShape(32.dp)
+                color = MainActivity.ColorBorderLight,
+                shape = RoundedCornerShape(24.dp)
             )
     ) {
         content()
@@ -493,28 +500,7 @@ fun IpDisplay(ip: String) {
                 fontWeight = FontWeight.SemiBold,
                 color = MainActivity.ColorPrimaryIndigo,
                 textAlign = TextAlign.Center,
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
-            )
-        }
-        
-        // 端口信息 - 居中显示
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "端口:",
-                fontSize = 16.sp,
-                color = MainActivity.ColorTextSecondary,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "8888",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                color = MainActivity.ColorPrimaryPurple,
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                textAlign = TextAlign.Center
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
@@ -605,48 +591,43 @@ fun PulsingIndicator(status: MainActivity.ConnectionStatus) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.3f,
+        targetValue = 1.4f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
+            animation = tween(1000, easing = EaseOutQuad),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "pulseScale"
+        label = "scale"
     )
     
     val alpha by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 0.5f,
+        initialValue = 0.8f,
+        targetValue = 0f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
+            animation = tween(1000, easing = EaseOutQuad),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "pulseAlpha"
+        label = "alpha"
     )
     
     Box(
-        modifier = Modifier.size(20.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.size(48.dp)
     ) {
         // 外圈脉冲
         Box(
             modifier = Modifier
-                .size(20.dp)
+                .size(48.dp)
                 .scale(scale)
                 .clip(CircleShape)
-                .background(color.copy(alpha = alpha * 0.3f))
+                .background(color.copy(alpha = alpha))
         )
         
         // 内圈实心
         Box(
             modifier = Modifier
-                .size(14.dp)
+                .size(24.dp)
                 .clip(CircleShape)
                 .background(color)
-                .shadow(
-                    elevation = 8.dp,
-                    shape = CircleShape,
-                    spotColor = color
-                )
         )
     }
 }
