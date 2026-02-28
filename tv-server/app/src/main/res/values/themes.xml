@@ -2,5 +2,6 @@
     <style name="Theme.CastTV" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:icon">@mipmap/ic_launcher</item>
     </style>
 </resources>
