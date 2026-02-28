@@ -33,9 +33,9 @@ import static org.bytedeco.ffmpeg.global.swscale.*;
  */
 public class ScreenCapture {
     
-    // 视频参数
-    private static final int FRAME_RATE = 30;           // 帧率
-    private static final int VIDEO_BITRATE = 8000000;   // 视频码率 8Mbps（高清）
+    // 视频参数 - 可配置
+    private int frameRate = 30;                         // 帧率
+    private int videoBitrate = 16000000;                // 视频码率 16Mbps（超高清）
     
     private ExecutorService executor;
     private AtomicBoolean isRunning = new AtomicBoolean(false);
@@ -56,7 +56,11 @@ public class ScreenCapture {
     
     // 是否使用屏幕原生分辨率
     private boolean useNativeResolution = true;
-    
+
+    // 目标分辨率（当不使用原生分辨率时）
+    private int targetWidth = 0;
+    private int targetHeight = 0;
+
     private Consumer<byte[]> onFrameCaptured;
     private Consumer<Exception> onError;
     
@@ -79,6 +83,28 @@ public class ScreenCapture {
      */
     public void setUseNativeResolution(boolean useNative) {
         this.useNativeResolution = useNative;
+    }
+
+    /**
+     * 设置目标分辨率（当不使用原生分辨率时）
+     */
+    public void setTargetResolution(int width, int height) {
+        this.targetWidth = width;
+        this.targetHeight = height;
+    }
+
+    /**
+     * 设置视频码率
+     */
+    public void setBitrate(int bitrate) {
+        this.videoBitrate = bitrate;
+    }
+
+    /**
+     * 设置帧率
+     */
+    public void setFrameRate(int fps) {
+        this.frameRate = fps;
     }
     
     /**
@@ -145,6 +171,10 @@ public class ScreenCapture {
                 // 使用屏幕原生分辨率
                 encodeWidth = captureWidth;
                 encodeHeight = captureHeight;
+            } else if (targetWidth > 0 && targetHeight > 0) {
+                // 使用指定的目标分辨率
+                encodeWidth = targetWidth;
+                encodeHeight = targetHeight;
             } else if (config != null) {
                 // 使用配置的分辨率
                 encodeWidth = config.getVideoWidth();
@@ -170,7 +200,7 @@ public class ScreenCapture {
             
             long startTime = System.currentTimeMillis();
             int frameCount = 0;
-            long frameInterval = 1000 / FRAME_RATE;
+            long frameInterval = 1000 / frameRate;
             long nextFrameTime = System.currentTimeMillis();
             
             while (isRunning.get()) {
@@ -251,22 +281,23 @@ public class ScreenCapture {
             throw new RuntimeException("无法创建编码器上下文");
         }
         
-        // 计算码率（根据分辨率自适应）
-        int bitrate = calculateBitrate(width, height);
-        
+        // 使用设置的码率，如果没有设置则根据分辨率自适应
+        int bitrate = videoBitrate > 0 ? videoBitrate : calculateBitrate(width, height);
+
         // 设置编码参数
         codecContext.width(width);
         codecContext.height(height);
-        codecContext.time_base(av_make_q(1, FRAME_RATE));
-        codecContext.framerate(av_make_q(FRAME_RATE, 1));
+        codecContext.time_base(av_make_q(1, frameRate));
+        codecContext.framerate(av_make_q(frameRate, 1));
         codecContext.pix_fmt(AV_PIX_FMT_YUV420P);
         codecContext.bit_rate(bitrate);
-        codecContext.gop_size(FRAME_RATE * 2);  // 2秒一个关键帧
+        codecContext.gop_size(frameRate * 2);  // 2秒一个关键帧
         codecContext.max_b_frames(0);  // 不使用B帧，降低延迟
         
-        // 设置编码器选项
-        av_opt_set(codecContext.priv_data(), "preset", "ultrafast", 0);
+        // 设置编码器选项 - 平衡质量和速度
+        av_opt_set(codecContext.priv_data(), "preset", "medium", 0);  // 改为medium提高质量
         av_opt_set(codecContext.priv_data(), "tune", "zerolatency", 0);
+        av_opt_set(codecContext.priv_data(), "profile", "high", 0);  // 使用High Profile提高压缩效率
         
         // 打开编码器
         int ret = avcodec_open2(codecContext, codec, (org.bytedeco.ffmpeg.avutil.AVDictionary) null);
@@ -274,11 +305,11 @@ public class ScreenCapture {
             throw new RuntimeException("无法打开编码器: " + ret);
         }
         
-        // 创建转换上下文 (RGB -> YUV420P)
+        // 创建转换上下文 (RGB -> YUV420P) - 使用高质量缩放
         swsContext = sws_getContext(
             width, height, AV_PIX_FMT_RGB24,
             width, height, AV_PIX_FMT_YUV420P,
-            SWS_FAST_BILINEAR, null, null, (double[]) null
+            SWS_LANCZOS, null, null, (double[]) null
         );
         
         // 创建帧

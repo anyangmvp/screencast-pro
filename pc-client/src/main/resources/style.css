@@ -4,10 +4,7 @@
    主色调: 深蓝紫渐变 + 青色点缀
    ============================================ */
 
-/* 导入字体 */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-/* 根变量定义 */
+/* 根变量定义 - JavaFX CSS不支持标准CSS的@import语法 */
 :root {
     /* 主色调 */
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -380,6 +377,62 @@
 
 .combo-box-popup .list-view .list-cell:hover {
     -fx-background-color: rgba(102, 126, 234, 0.3);
+}
+
+/* 白色文字下拉框 - 用于视频设置 */
+.white-text-combobox {
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: white;
+}
+
+/* 下拉框按钮区域（显示当前选中的值） */
+.white-text-combobox > .list-cell {
+    -fx-text-fill: white !important;
+    -fx-background-color: transparent;
+}
+
+/* 下拉框内部文字 */
+.white-text-combobox .list-cell {
+    -fx-text-fill: white !important;
+    -fx-background-color: transparent;
+}
+
+/* 选中的list-cell */
+.white-text-combobox .list-cell:selected {
+    -fx-text-fill: white !important;
+    -fx-background-color: rgba(102, 126, 234, 0.3);
+}
+
+/* 下拉框的label文字 */
+.white-text-combobox .label {
+    -fx-text-fill: white !important;
+}
+
+/* 直接设置ComboBox的cell factory文字颜色 */
+.combo-box-base > .list-cell {
+    -fx-text-fill: white;
+}
+
+/* 下拉弹出框样式 */
+.combo-box-popup > .list-view {
+    -fx-background-color: rgba(20, 20, 30, 0.95);
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-border-width: 1px;
+}
+
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+}
+
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:hover {
+    -fx-text-fill: white;
+    -fx-background-color: rgba(102, 126, 234, 0.5);
+}
+
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected {
+    -fx-text-fill: white;
+    -fx-background-color: rgba(102, 126, 234, 0.7);
 }
 
 /* ============================================

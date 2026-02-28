@@ -36,7 +36,9 @@ if not exist "%LIB_DIR%" (
 echo Starting...
 echo.
 
-java -jar "%JAR_FILE%"
+set JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8
+
+java -jar "%JAR_FILE%" 2>&1 | findstr /V /C:"Unsupported JavaFX configuration" /C:"CSS Error"
 
 if errorlevel 1 (
     echo.

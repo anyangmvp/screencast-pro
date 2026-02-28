@@ -53,7 +53,16 @@ public class MainWindow extends Application {
     private VBox mainContainer;
     private Text titleText;
     private Label networkModeLabel;
-    
+    private ComboBox<String> resolutionComboBox;
+    private Label resolutionLabel;
+    private ComboBox<String> bitrateComboBox;
+    private Label bitrateLabel;
+    private ComboBox<String> fpsComboBox;
+    private Label fpsLabel;
+    private Button resetSettingsButton;
+    private Label settingsStatusLabel;
+    private volatile boolean isApplyingSettings = false;
+
     // 颜色定义
     private static final Color COLOR_BG_DARK = Color.web("#0a0a0f");
     private static final Color COLOR_BG_CARD = Color.web("#14141e", 0.6);
@@ -74,13 +83,13 @@ public class MainWindow extends Application {
         mainContainer = createMainContainer();
         
         // 创建场景 - 增加高度确保内容完整显示
-        Scene scene = new Scene(mainContainer, 1000, 900);
+        Scene scene = new Scene(mainContainer, 1200, 900);
         scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
         // 设置窗口样式
         primaryStage.setScene(scene);
-        primaryStage.setMinWidth(900);
-        primaryStage.setMinHeight(800);
+        primaryStage.setMinWidth(1100);
+        primaryStage.setMinHeight(1000);
         primaryStage.setOnCloseRequest(e -> onClose());
         
         // 添加启动动画
@@ -113,31 +122,36 @@ public class MainWindow extends Application {
         VBox content = new VBox(24);
         content.setAlignment(Pos.TOP_CENTER);
         content.setPadding(new Insets(40, 48, 48, 48));
-        content.setMaxWidth(800);
-        
+        content.setMaxWidth(1400);
+
         // 标题区域
         content.getChildren().add(createHeader());
-        
-        // 主体内容 - 左右分栏
-        HBox mainContent = new HBox(24);
+
+        // 主体内容 - 三列分栏
+        HBox mainContent = new HBox(20);
         mainContent.setAlignment(Pos.TOP_CENTER);
-        
-        // 左侧：设备列表
+
+        // 第一列：设备列表
         VBox leftPanel = createLeftPanel();
-        leftPanel.setPrefWidth(380);
+        leftPanel.setPrefWidth(320);
         HBox.setHgrow(leftPanel, Priority.ALWAYS);
-        
-        // 右侧：状态和控制
+
+        // 第二列：连接状态和本机信息
+        VBox middlePanel = createMiddlePanel();
+        middlePanel.setPrefWidth(320);
+        HBox.setHgrow(middlePanel, Priority.ALWAYS);
+
+        // 第三列：视频设置
         VBox rightPanel = createRightPanel();
-        rightPanel.setPrefWidth(380);
+        rightPanel.setPrefWidth(360);
         HBox.setHgrow(rightPanel, Priority.ALWAYS);
-        
-        mainContent.getChildren().addAll(leftPanel, rightPanel);
+
+        mainContent.getChildren().addAll(leftPanel, middlePanel, rightPanel);
         content.getChildren().add(mainContent);
-        
+
         // 日志区域
         content.getChildren().add(createLogPanel());
-        
+
         container.getChildren().add(content);
         
         return container;
@@ -253,32 +267,46 @@ public class MainWindow extends Application {
     }
     
     /**
-     * 创建右侧面板 - 状态和控制
+     * 创建中间面板 - 连接状态和本机信息
+     */
+    private VBox createMiddlePanel() {
+        VBox panel = createGlassCard();
+        panel.setSpacing(20);
+
+        // 连接状态卡片
+        VBox statusCard = createStatusCard();
+
+        // 本机信息
+        VBox infoCard = createInfoCard();
+
+        // 控制按钮
+        HBox buttonBox = new HBox(16);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        startButton = createStyledButton("▶ 开始投屏", false);
+        startButton.setOnAction(e -> startCasting());
+
+        stopButton = createStyledButton("⏹ 停止投屏", true);
+        stopButton.setDisable(true);
+        stopButton.setOnAction(e -> stopCasting());
+
+        buttonBox.getChildren().addAll(startButton, stopButton);
+
+        panel.getChildren().addAll(statusCard, infoCard, buttonBox);
+        return panel;
+    }
+
+    /**
+     * 创建右侧面板 - 视频设置
      */
     private VBox createRightPanel() {
         VBox panel = createGlassCard();
         panel.setSpacing(20);
-        
-        // 连接状态卡片
-        VBox statusCard = createStatusCard();
-        
-        // 本机信息
-        VBox infoCard = createInfoCard();
-        
-        // 控制按钮
-        HBox buttonBox = new HBox(16);
-        buttonBox.setAlignment(Pos.CENTER);
-        
-        startButton = createStyledButton("▶ 开始投屏", false);
-        startButton.setOnAction(e -> startCasting());
-        
-        stopButton = createStyledButton("⏹ 停止投屏", true);
-        stopButton.setDisable(true);
-        stopButton.setOnAction(e -> stopCasting());
-        
-        buttonBox.getChildren().addAll(startButton, stopButton);
-        
-        panel.getChildren().addAll(statusCard, infoCard, buttonBox);
+
+        // 视频设置卡片
+        VBox resolutionCard = createResolutionCard();
+
+        panel.getChildren().addAll(resolutionCard);
         return panel;
     }
     
@@ -360,7 +388,292 @@ public class MainWindow extends Application {
         card.getChildren().addAll(title, ipBox, portBox);
         return card;
     }
-    
+
+    /**
+     * 创建视频设置卡片 - 包含分辨率、码率、帧率
+     */
+    private VBox createResolutionCard() {
+        VBox card = new VBox(20);
+        card.setStyle(
+            "-fx-background-color: rgba(15,15,25,0.6);" +
+            "-fx-background-radius: 16px;" +
+            "-fx-padding: 20px;"
+        );
+
+        // 标题栏
+        HBox titleBar = new HBox(12);
+        titleBar.setAlignment(Pos.CENTER_LEFT);
+
+        Label title = new Label("📺 视频设置");
+        title.setStyle("-fx-font-size: 16px; -fx-font-weight: 600; -fx-text-fill: white;");
+
+        // 重置按钮
+        resetSettingsButton = new Button("🔄 重置默认");
+        resetSettingsButton.setStyle(
+            "-fx-background-color: rgba(255,255,255,0.1);" +
+            "-fx-text-fill: rgba(255,255,255,0.7);" +
+            "-fx-font-size: 12px;" +
+            "-fx-background-radius: 6px;" +
+            "-fx-padding: 6px 12px;"
+        );
+        resetSettingsButton.setOnAction(e -> resetToDefaultSettings());
+
+        HBox.setHgrow(title, Priority.ALWAYS);
+        titleBar.getChildren().addAll(title, resetSettingsButton);
+
+        // 分辨率设置
+        VBox resolutionBox = createSettingRow(
+            "分辨率",
+            "根据电视尺寸和网络选择合适的分辨率",
+            new String[]{
+                "自动 (跟随电脑屏幕)",
+                "720p (1280×720)",
+                "1080p (1920×1080)",
+                "2K (2560×1440)",
+                "4K (3840×2160)",
+                "8K (7680×4320)"
+            },
+            "自动 (跟随电脑屏幕)"
+        );
+        resolutionComboBox = (ComboBox<String>) resolutionBox.getChildren().get(1);
+        resolutionLabel = (Label) resolutionBox.getChildren().get(2);
+
+        // 码率设置
+        VBox bitrateBox = createSettingRow(
+            "码率",
+            "码率越高画质越好，但需要更强的网络",
+            new String[]{
+                "自动 (根据分辨率)",
+                "4 Mbps (标准)",
+                "8 Mbps (高清)",
+                "16 Mbps (超清) ⭐推荐",
+                "24 Mbps (2K画质)",
+                "32 Mbps (2K超清)",
+                "50 Mbps (4K画质)",
+                "80 Mbps (4K超清)",
+                "100 Mbps (8K画质)"
+            },
+            "16 Mbps (超清) ⭐推荐"
+        );
+        bitrateComboBox = (ComboBox<String>) bitrateBox.getChildren().get(1);
+        bitrateLabel = (Label) bitrateBox.getChildren().get(2);
+
+        // 帧率设置
+        VBox fpsBox = createSettingRow(
+            "帧率",
+            "帧率越高画面越流畅",
+            new String[]{
+                "24 fps (电影)",
+                "30 fps (标准)",
+                "60 fps (流畅) ⭐推荐",
+                "120 fps (极致)"
+            },
+            "30 fps (标准)"
+        );
+        fpsComboBox = (ComboBox<String>) fpsBox.getChildren().get(1);
+        fpsLabel = (Label) fpsBox.getChildren().get(2);
+
+        // 监听变化自动生效
+        resolutionComboBox.setOnAction(e -> {
+            updateSettingsInfo();
+            applySettingsImmediately();
+        });
+        bitrateComboBox.setOnAction(e -> {
+            updateSettingsInfo();
+            applySettingsImmediately();
+        });
+        fpsComboBox.setOnAction(e -> {
+            updateSettingsInfo();
+            applySettingsImmediately();
+        });
+
+        // 默认设置提示
+        Label defaultTip = new Label("💡 默认方案: 电脑分辨率 + 16Mbps + 30fps | 适合85寸电视超清播放");
+        defaultTip.setStyle("-fx-font-size: 11px; -fx-text-fill: rgba(0,212,255,0.7); -fx-font-style: italic;");
+
+        // 投屏中提示
+        settingsStatusLabel = new Label("");
+        settingsStatusLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: rgba(255,255,255,0.5);");
+        settingsStatusLabel.setAlignment(Pos.CENTER);
+
+        card.getChildren().addAll(titleBar, resolutionBox, bitrateBox, fpsBox, defaultTip, settingsStatusLabel);
+        return card;
+    }
+
+    /**
+     * 创建设置行
+     */
+    private VBox createSettingRow(String label, String description, String[] options, String defaultValue) {
+        VBox box = new VBox(8);
+
+        Label titleLabel = new Label(label);
+        titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: 500; -fx-text-fill: rgba(255,255,255,0.8);");
+
+        ComboBox<String> comboBox = new ComboBox<>();
+        comboBox.getItems().addAll(options);
+        comboBox.setValue(defaultValue);
+        comboBox.setPrefWidth(320);
+        // 设置ComboBox样式 - 文字颜色通过CSS类设置
+        comboBox.setStyle(
+            "-fx-background-color: rgba(255,255,255,0.08);" +
+            "-fx-font-size: 13px;" +
+            "-fx-background-radius: 8px;"
+        );
+        comboBox.getStyleClass().add("white-text-combobox");
+
+        Label descLabel = new Label(description);
+        descLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: rgba(255,255,255,0.4);");
+
+        box.getChildren().addAll(titleLabel, comboBox, descLabel);
+        return box;
+    }
+
+    /**
+     * 更新设置信息显示
+     */
+    private void updateSettingsInfo() {
+        String resolution = resolutionComboBox.getValue();
+        String bitrate = bitrateComboBox.getValue();
+        String fps = fpsComboBox.getValue();
+
+        // 根据选择更新提示
+        if (resolution.contains("4K") && !bitrate.contains("50") && !bitrate.contains("80")) {
+            resolutionLabel.setText("⚠️ 4K分辨率建议使用50Mbps以上码率");
+            resolutionLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #f59e0b;");
+        } else if (resolution.contains("8K") && !bitrate.contains("100")) {
+            resolutionLabel.setText("⚠️ 8K分辨率建议使用100Mbps码率");
+            resolutionLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #ef4444;");
+        } else {
+            resolutionLabel.setText("✅ 当前设置适合大多数场景");
+            resolutionLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #10b981;");
+        }
+    }
+
+    /**
+     * 重置为默认设置
+     */
+    private void resetToDefaultSettings() {
+        resolutionComboBox.setValue("自动 (跟随电脑屏幕)");
+        bitrateComboBox.setValue("16 Mbps (超清) ⭐推荐");
+        fpsComboBox.setValue("30 fps (标准)");
+        updateSettingsInfo();
+        log("🔄 已重置为默认设置: 电脑分辨率 + 16Mbps + 30fps", "info");
+    }
+
+    /**
+     * 立即应用视频设置（无需断开重连）
+     */
+    private void applySettingsImmediately() {
+        if (!castClient.isConnected()) {
+            settingsStatusLabel.setText("⚠️ 请先连接设备");
+            settingsStatusLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #f59e0b;");
+            return;
+        }
+
+        // 防止频繁切换导致崩溃
+        if (isApplyingSettings) {
+            return;
+        }
+        isApplyingSettings = true;
+
+        // 获取当前设置（在主线程中获取）
+        String selectedResolution = resolutionComboBox.getValue();
+        String selectedBitrate = bitrateComboBox.getValue();
+        String selectedFps = fpsComboBox.getValue();
+
+        // 解析分辨率
+        boolean useNativeResolution = selectedResolution.contains("自动");
+        int targetWidth = 0, targetHeight = 0;
+        if (!useNativeResolution) {
+            if (selectedResolution.contains("720")) { targetWidth = 1280; targetHeight = 720; }
+            else if (selectedResolution.contains("1080")) { targetWidth = 1920; targetHeight = 1080; }
+            else if (selectedResolution.contains("2K")) { targetWidth = 2560; targetHeight = 1440; }
+            else if (selectedResolution.contains("4K")) { targetWidth = 3840; targetHeight = 2160; }
+            else if (selectedResolution.contains("8K")) { targetWidth = 7680; targetHeight = 4320; }
+        }
+
+        // 解析码率
+        int bitrate = 16000000;
+        if (selectedBitrate.contains("4")) bitrate = 4000000;
+        else if (selectedBitrate.contains("8")) bitrate = 8000000;
+        else if (selectedBitrate.contains("16")) bitrate = 16000000;
+        else if (selectedBitrate.contains("24")) bitrate = 24000000;
+        else if (selectedBitrate.contains("32")) bitrate = 32000000;
+        else if (selectedBitrate.contains("50")) bitrate = 50000000;
+        else if (selectedBitrate.contains("80")) bitrate = 80000000;
+        else if (selectedBitrate.contains("100")) bitrate = 100000000;
+
+        // 解析帧率
+        int fps = 30;
+        if (selectedFps.contains("24")) fps = 24;
+        else if (selectedFps.contains("30")) fps = 30;
+        else if (selectedFps.contains("60")) fps = 60;
+        else if (selectedFps.contains("120")) fps = 120;
+
+        // 在后台线程中执行设置更新
+        final int finalBitrate = bitrate;
+        final int finalFps = fps;
+        final boolean finalUseNativeResolution = useNativeResolution;
+        final int finalTargetWidth = targetWidth;
+        final int finalTargetHeight = targetHeight;
+        final String finalSelectedResolution = selectedResolution;
+
+        new Thread(() -> {
+            try {
+                Platform.runLater(() -> {
+                    settingsStatusLabel.setText("⏳ 正在应用设置...");
+                    settingsStatusLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #00d4ff;");
+                });
+
+                // 停止当前捕获
+                screenCapture.stop();
+
+                // 等待更长时间确保FFmpeg资源完全释放
+                Thread.sleep(1000);
+
+                // 应用新设置
+                screenCapture.setUseNativeResolution(finalUseNativeResolution);
+                screenCapture.setBitrate(finalBitrate);
+                screenCapture.setFrameRate(finalFps);
+                if (!finalUseNativeResolution) {
+                    screenCapture.setTargetResolution(finalTargetWidth, finalTargetHeight);
+                }
+
+                // 重新启动捕获
+                screenCapture.start();
+
+                // 等待捕获初始化完成
+                Thread.sleep(500);
+
+                // 获取新分辨率
+                String newResolution = screenCapture.getCurrentResolution();
+                String[] parts = newResolution.split("x");
+                int width = Integer.parseInt(parts[0]);
+                int height = Integer.parseInt(parts[1]);
+
+                // 发送新的视频参数到TV
+                castClient.setVideoParams(width, height, finalFps);
+
+                // 更新UI
+                Platform.runLater(() -> {
+                    deviceLabel.setText(deviceLabel.getText().split(" ")[0] + " (" + newResolution + ")");
+                    settingsStatusLabel.setText("✅ 设置已生效: " + newResolution + " @ " + (finalBitrate/1000000) + "Mbps, " + finalFps + "fps");
+                    settingsStatusLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #10b981;");
+                    log("✅ 视频设置已更新: " + finalSelectedResolution + ", " + (finalBitrate/1000000) + "Mbps, " + finalFps + "fps", "success");
+                });
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    settingsStatusLabel.setText("❌ 应用失败: " + e.getMessage());
+                    settingsStatusLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #ef4444;");
+                    log("❌ 应用设置失败: " + e.getMessage(), "error");
+                });
+            } finally {
+                isApplyingSettings = false;
+            }
+        }).start();
+    }
+
     /**
      * 创建日志面板
      */
@@ -430,10 +743,11 @@ public class MainWindow extends Application {
         Button button = new Button(text);
         button.setPrefHeight(48);
         button.setPrefWidth(140);
-        
+
         if (isDanger) {
+            // 停止按钮 - 红色
             button.setStyle(
-                "-fx-background-color: #ef4444;" +
+                "-fx-background-color: #dc2626;" +
                 "-fx-text-fill: white;" +
                 "-fx-font-size: 14px;" +
                 "-fx-font-weight: 600;" +
@@ -441,8 +755,9 @@ public class MainWindow extends Application {
                 "-fx-cursor: hand;"
             );
         } else {
+            // 开始/刷新按钮 - 蓝色
             button.setStyle(
-                "-fx-background-color: #667eea;" +
+                "-fx-background-color: #3b82f6;" +
                 "-fx-text-fill: white;" +
                 "-fx-font-size: 14px;" +
                 "-fx-font-weight: 600;" +
@@ -450,33 +765,9 @@ public class MainWindow extends Application {
                 "-fx-cursor: hand;"
             );
         }
-        
+
         // 添加悬停效果
         button.setOnMouseEntered(e -> {
-            if (isDanger) {
-                button.setStyle(
-                    "-fx-background-color: #f87171;" +
-                    "-fx-text-fill: white;" +
-                    "-fx-font-size: 14px;" +
-                    "-fx-font-weight: 600;" +
-                    "-fx-background-radius: 12px;" +
-                    "-fx-cursor: hand;"
-                );
-            } else {
-                button.setStyle(
-                    "-fx-background-color: #7c8ce5;" +
-                    "-fx-text-fill: white;" +
-                    "-fx-font-size: 14px;" +
-                    "-fx-font-weight: 600;" +
-                    "-fx-background-radius: 12px;" +
-                    "-fx-cursor: hand;"
-                );
-            }
-            button.setScaleX(1.02);
-            button.setScaleY(1.02);
-        });
-        
-        button.setOnMouseExited(e -> {
             if (isDanger) {
                 button.setStyle(
                     "-fx-background-color: #ef4444;" +
@@ -488,7 +779,31 @@ public class MainWindow extends Application {
                 );
             } else {
                 button.setStyle(
-                    "-fx-background-color: #667eea;" +
+                    "-fx-background-color: #60a5fa;" +
+                    "-fx-text-fill: white;" +
+                    "-fx-font-size: 14px;" +
+                    "-fx-font-weight: 600;" +
+                    "-fx-background-radius: 12px;" +
+                    "-fx-cursor: hand;"
+                );
+            }
+            button.setScaleX(1.02);
+            button.setScaleY(1.02);
+        });
+
+        button.setOnMouseExited(e -> {
+            if (isDanger) {
+                button.setStyle(
+                    "-fx-background-color: #dc2626;" +
+                    "-fx-text-fill: white;" +
+                    "-fx-font-size: 14px;" +
+                    "-fx-font-weight: 600;" +
+                    "-fx-background-radius: 12px;" +
+                    "-fx-cursor: hand;"
+                );
+            } else {
+                button.setStyle(
+                    "-fx-background-color: #3b82f6;" +
                     "-fx-text-fill: white;" +
                     "-fx-font-size: 14px;" +
                     "-fx-font-weight: 600;" +
@@ -499,7 +814,7 @@ public class MainWindow extends Application {
             button.setScaleX(1.0);
             button.setScaleY(1.0);
         });
-        
+
         return button;
     }
     
@@ -816,58 +1131,133 @@ public class MainWindow extends Application {
             showAlert("请先选择一个设备");
             return;
         }
-        
+
         // 解析IP地址
         String ip = selected.substring(selected.indexOf("   ") + 3).trim();
         String deviceName = selected.substring(2, selected.indexOf("\n")).trim();
-        
+
         try {
             log("🔗 正在连接到: " + ip, "info");
-            
+
+            // 获取视频设置
+            String selectedResolution = resolutionComboBox.getValue();
+            String selectedBitrate = bitrateComboBox.getValue();
+            String selectedFps = fpsComboBox.getValue();
+
+            // 解析分辨率
+            int targetWidth = 0, targetHeight = 0;
+            boolean useNativeResolution = false;
+
+            switch (selectedResolution) {
+                case "自动 (跟随电脑屏幕)":
+                    useNativeResolution = true;
+                    break;
+                case "720p (1280×720)":
+                    targetWidth = 1280;
+                    targetHeight = 720;
+                    break;
+                case "1080p (1920×1080)":
+                    targetWidth = 1920;
+                    targetHeight = 1080;
+                    break;
+                case "2K (2560×1440)":
+                    targetWidth = 2560;
+                    targetHeight = 1440;
+                    break;
+                case "4K (3840×2160)":
+                    targetWidth = 3840;
+                    targetHeight = 2160;
+                    break;
+                case "8K (7680×4320)":
+                    targetWidth = 7680;
+                    targetHeight = 4320;
+                    break;
+            }
+
+            // 解析码率
+            int bitrate = 16000000; // 默认16Mbps
+            if (selectedBitrate.contains("4")) bitrate = 4000000;
+            else if (selectedBitrate.contains("8")) bitrate = 8000000;
+            else if (selectedBitrate.contains("16")) bitrate = 16000000;
+            else if (selectedBitrate.contains("24")) bitrate = 24000000;
+            else if (selectedBitrate.contains("32")) bitrate = 32000000;
+            else if (selectedBitrate.contains("50")) bitrate = 50000000;
+            else if (selectedBitrate.contains("80")) bitrate = 80000000;
+            else if (selectedBitrate.contains("100")) bitrate = 100000000;
+
+            // 解析帧率
+            int fps = 30; // 默认30fps
+            if (selectedFps.contains("24")) fps = 24;
+            else if (selectedFps.contains("30")) fps = 30;
+            else if (selectedFps.contains("60")) fps = 60;
+            else if (selectedFps.contains("120")) fps = 120;
+
+            log("⚙️ 视频设置: 分辨率=" + selectedResolution + ", 码率=" + (bitrate/1000000) + "Mbps, 帧率=" + fps + "fps", "info");
+
             // 配置屏幕捕获
             screenCapture.setConfig(appConfig);
-            screenCapture.setUseNativeResolution(true); // 使用屏幕原生分辨率
-            
+            screenCapture.setUseNativeResolution(useNativeResolution);
+            screenCapture.setBitrate(bitrate);
+            screenCapture.setFrameRate(fps);
+
+            // 如果不是原生分辨率，设置目标分辨率
+            if (!useNativeResolution) {
+                screenCapture.setTargetResolution(targetWidth, targetHeight);
+                log("📺 设置投屏分辨率: " + targetWidth + "x" + targetHeight, "info");
+            }
+
             // 先启动屏幕捕获，获取实际分辨率
             screenCapture.start();
-            
+
             // 等待一小段时间让捕获器初始化
             Thread.sleep(500);
-            
+
             // 获取实际编码分辨率
             String resolution = screenCapture.getCurrentResolution();
-            log("📺 投屏分辨率: " + resolution, "info");
-            
+            log("📺 实际投屏分辨率: " + resolution, "info");
+
             // 解析分辨率
             String[] parts = resolution.split("x");
             int width = Integer.parseInt(parts[0]);
             int height = Integer.parseInt(parts[1]);
-            int fps = appConfig.getFrameRate();
-            
+
             // 设置客户端视频参数
             castClient.setVideoParams(width, height, fps);
-            
-            // 在后台线程中连接
-            new Thread(() -> {
-                try {
-                    castClient.connect(ip, 8888);
-                    
-                    Platform.runLater(() -> {
-                        deviceLabel.setText(deviceName + " (" + resolution + ")");
-                        startButton.setDisable(true);
-                        stopButton.setDisable(false);
-                        
-                        log("▶️ 投屏已开始", "success");
-                    });
-                } catch (Exception e) {
-                    Platform.runLater(() -> {
-                        log("❌ 连接失败: " + e.getMessage(), "error");
-                        showAlert("连接失败: " + e.getMessage());
-                        screenCapture.stop();
-                    });
-                }
-            }).start();
-            
+
+            // 设置连接成功回调
+            castClient.setOnConnected(() -> {
+                Platform.runLater(() -> {
+                    deviceLabel.setText(deviceName + " (" + resolution + ")");
+                    startButton.setDisable(true);
+                    stopButton.setDisable(false);
+                    updateStatus("已连接", "connected");
+                    log("▶️ 投屏已开始", "success");
+
+                    // 连接成功后停止扫描设备列表
+                    if (deviceDiscovery != null) {
+                        deviceDiscovery.stop();
+                        log("🔍 已停止扫描设备", "info");
+                    }
+                });
+            });
+
+            // 设置连接断开回调
+            castClient.setOnDisconnected(() -> {
+                Platform.runLater(() -> {
+                    log("⚠️ 连接已断开", "warning");
+                });
+            });
+
+            // 异步连接
+            try {
+                castClient.connect(ip, 8888);
+                log("⏳ 正在连接...", "info");
+            } catch (Exception e) {
+                log("❌ 连接失败: " + e.getMessage(), "error");
+                showAlert("连接失败: " + e.getMessage());
+                screenCapture.stop();
+            }
+
         } catch (Exception e) {
             log("❌ 连接失败: " + e.getMessage(), "error");
             showAlert("连接失败: " + e.getMessage());
@@ -880,12 +1270,23 @@ public class MainWindow extends Application {
     private void stopCasting() {
         screenCapture.stop();
         castClient.disconnect();
-        
+
         startButton.setDisable(false);
         stopButton.setDisable(true);
         deviceLabel.setText("未选择设备");
         updateStatus("等待连接...", "waiting");
-        
+
+        // 停止投屏后重新启动设备发现
+        if (deviceDiscovery != null) {
+            deviceDiscovery.start();
+            log("🔍 已重新开始扫描设备", "info");
+        }
+
+        // 清空设置状态
+        if (settingsStatusLabel != null) {
+            settingsStatusLabel.setText("");
+        }
+
         log("⏹️ 投屏已停止", "warning");
     }
     
@@ -893,16 +1294,28 @@ public class MainWindow extends Application {
      * 窗口关闭处理
      */
     private void onClose() {
+        log("🚪 正在关闭应用...", "info");
+
+        // 停止屏幕捕获
         if (screenCapture != null) {
             screenCapture.stop();
         }
+
+        // 断开投屏连接
         if (castClient != null) {
             castClient.disconnect();
         }
+
+        // 停止设备发现服务
         if (deviceDiscovery != null) {
             deviceDiscovery.stop();
         }
+
+        // 关闭JavaFX平台
         Platform.exit();
+
+        // 强制终止所有线程并退出JVM
+        System.exit(0);
     }
     
     /**

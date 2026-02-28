@@ -77,55 +77,59 @@ public class CastClient {
         if (connected.get()) {
             return;
         }
-        
+
         System.out.println("正在连接到 " + host + ":" + port + "...");
-        
+
         workerGroup = new NioEventLoopGroup();
-        
-        try {
-            Bootstrap bootstrap = new Bootstrap();
-            bootstrap.group(workerGroup)
-                    .channel(NioSocketChannel.class)
-                    .option(ChannelOption.SO_KEEPALIVE, true)
-                    .option(ChannelOption.TCP_NODELAY, true)
-                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, CONNECT_TIMEOUT * 1000)
-                    .handler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(SocketChannel ch) throws Exception {
-                            ChannelPipeline pipeline = ch.pipeline();
-                            
-                            // 添加长度字段编解码器（解决粘包问题）
-                            // 格式: [4字节长度][数据体]
-                            pipeline.addLast(new LengthFieldBasedFrameDecoder(
-                                    10 * 1024 * 1024,  // 最大帧大小 10MB
-                                    0, 4, 0, 4));
-                            pipeline.addLast(new LengthFieldPrepender(4));
-                            
-                            // 添加业务处理器
-                            pipeline.addLast(new CastClientHandler());
-                        }
-                    });
-            
-            // 连接服务器
-            ChannelFuture future = bootstrap.connect(host, port).sync();
-            channel = future.channel();
-            
-            connected.set(true);
-            System.out.println("已连接到服务器: " + host + ":" + port);
-            
-            if (onConnected != null) {
-                onConnected.run();
+
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap.group(workerGroup)
+                .channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.TCP_NODELAY, true)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, CONNECT_TIMEOUT * 1000)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        ChannelPipeline pipeline = ch.pipeline();
+
+                        // 添加长度字段编解码器（解决粘包问题）
+                        // 格式: [4字节长度][数据体]
+                        pipeline.addLast(new LengthFieldBasedFrameDecoder(
+                                10 * 1024 * 1024,  // 最大帧大小 10MB
+                                0, 4, 0, 4));
+                        pipeline.addLast(new LengthFieldPrepender(4));
+
+                        // 添加业务处理器
+                        pipeline.addLast(new CastClientHandler());
+                    }
+                });
+
+        // 连接服务器 - 使用异步连接
+        ChannelFuture future = bootstrap.connect(host, port);
+        future.addListener((ChannelFutureListener) f -> {
+            if (f.isSuccess()) {
+                channel = f.channel();
+                connected.set(true);
+                System.out.println("已连接到服务器: " + host + ":" + port);
+
+                if (onConnected != null) {
+                    onConnected.run();
+                }
+
+                // 发送握手消息
+                sendHandshake();
+
+                // 添加关闭监听器
+                channel.closeFuture().addListener(closeFuture -> {
+                    System.out.println("连接已关闭");
+                    disconnect();
+                });
+            } else {
+                System.err.println("连接失败: " + f.cause().getMessage());
+                disconnect();
             }
-            
-            // 发送握手消息
-            sendHandshake();
-            
-            // 等待连接关闭
-            channel.closeFuture().sync();
-            
-        } finally {
-            disconnect();
-        }
+        });
     }
     
     /**
