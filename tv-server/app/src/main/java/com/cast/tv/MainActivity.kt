@@ -318,60 +318,79 @@ fun MainScreen(
         end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
     )
     
-    Box(
+    // 根据屏幕高度动态调整布局
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(gradientBackground)
-            .padding(48.dp),
-        contentAlignment = Alignment.Center
     ) {
-        // 背景光晕效果 - 紫色
+        val screenHeight = this.maxHeight
+        val isSmallScreen = screenHeight < 700.dp
+        
+        // 动态计算 padding 和间距
+        val mainPadding = if (isSmallScreen) 16.dp else 48.dp
+        val itemSpacing = if (isSmallScreen) 16.dp else 32.dp
+        val cardPadding = if (isSmallScreen) 24.dp else 48.dp
+        val titleSize = if (isSmallScreen) 36.sp else 56.sp
+        val subtitleSize = if (isSmallScreen) 14.sp else 20.sp
+        val iconSize = if (isSmallScreen) 48.dp else 64.dp
+        
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            MainActivity.ColorPrimaryPurple.copy(alpha = 0.15f),
-                            Color.Transparent
-                        ),
-                        radius = 800f
-                    )
-                )
-        )
-        
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(32.dp),
-            modifier = Modifier.fillMaxWidth()
+                .padding(mainPadding),
+            contentAlignment = Alignment.Center
         ) {
-            // 标题区域
-            TitleSection()
-            
-            // 主内容卡片
-            GlassCard {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(32.dp),
-                    modifier = Modifier.padding(48.dp)
-                ) {
-                    // IP 地址显示
-                    IpDisplay(serverIp)
-                    
-                    // 分隔线
-                    Divider(
-                        color = MainActivity.ColorBorder,
-                        thickness = 2.dp,
-                        modifier = Modifier.fillMaxWidth(0.8f)
+            // 背景光晕效果 - 紫色
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                MainActivity.ColorPrimaryPurple.copy(alpha = 0.15f),
+                                Color.Transparent
+                            ),
+                            radius = if (isSmallScreen) 400f else 800f
+                        )
                     )
-                    
-                    // 连接状态
-                    ConnectionStatusSection(connectionStatus, connectedDevice)
+            )
+            
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(itemSpacing),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // 标题区域
+                TitleSection(titleSize = titleSize, subtitleSize = subtitleSize)
+                
+                // 主内容卡片
+                GlassCard {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(itemSpacing),
+                        modifier = Modifier.padding(cardPadding)
+                    ) {
+                        // IP 地址显示
+                        IpDisplay(ip = serverIp, iconSize = iconSize)
+                        
+                        // 分隔线
+                        Divider(
+                            color = MainActivity.ColorBorder,
+                            thickness = 2.dp,
+                            modifier = Modifier.fillMaxWidth(0.8f)
+                        )
+                        
+                        // 连接状态
+                        ConnectionStatusSection(connectionStatus, connectedDevice)
+                    }
+                }
+                
+                // 使用说明（仅在大屏幕显示）
+                if (!isSmallScreen) {
+                    InstructionText()
                 }
             }
-            
-            // 使用说明
-            InstructionText()
         }
     }
 }
@@ -380,7 +399,10 @@ fun MainScreen(
  * 标题区域
  */
 @Composable
-fun TitleSection() {
+fun TitleSection(
+    titleSize: androidx.compose.ui.unit.TextUnit = 56.sp,
+    subtitleSize: androidx.compose.ui.unit.TextUnit = 20.sp
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -388,7 +410,7 @@ fun TitleSection() {
         // 渐变标题 - 靛蓝到紫罗兰
         Text(
             text = "Screen Cast Pro",
-            fontSize = 56.sp,
+            fontSize = titleSize,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.headlineLarge.copy(
@@ -404,7 +426,7 @@ fun TitleSection() {
         // 副标题
         Text(
             text = "电脑无线投屏到安卓设备",
-            fontSize = 20.sp,
+            fontSize = subtitleSize,
             color = MainActivity.ColorTextMuted,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center
@@ -445,14 +467,20 @@ fun GlassCard(
  * IP 地址显示
  */
 @Composable
-fun IpDisplay(ip: String) {
+fun IpDisplay(
+    ip: String = "",
+    iconSize: androidx.compose.ui.unit.Dp = 64.dp
+) {
+    val ipFontSize = if (iconSize < 60.dp) 28.sp else 42.sp
+    val labelFontSize = if (iconSize < 60.dp) 14.sp else 18.sp
+    
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
             text = "本机 IP 地址",
-            fontSize = 18.sp,
+            fontSize = labelFontSize,
             color = MainActivity.ColorTextSecondary,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center
@@ -479,7 +507,7 @@ fun IpDisplay(ip: String) {
         ) {
             Text(
                 text = ip,
-                fontSize = 42.sp,
+                fontSize = ipFontSize,
                 fontWeight = FontWeight.SemiBold,
                 color = MainActivity.ColorPrimaryIndigo,
                 textAlign = TextAlign.Center

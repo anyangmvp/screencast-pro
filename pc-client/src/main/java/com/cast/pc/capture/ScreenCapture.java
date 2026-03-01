@@ -329,13 +329,13 @@ public class ScreenCapture {
         codecContext.framerate(av_make_q(frameRate, 1));
         codecContext.pix_fmt(AV_PIX_FMT_YUV420P);
         codecContext.bit_rate(bitrate);
-        codecContext.gop_size(frameRate * 2);  // 2秒一个关键帧
+        codecContext.gop_size(frameRate * 1);  // 0.5秒一个关键帧，进一步减少延迟
         codecContext.max_b_frames(0);  // 不使用B帧，降低延迟
         
-        // 设置编码器选项 - 平衡质量和速度
-        av_opt_set(codecContext.priv_data(), "preset", "medium", 0);  // 改为medium提高质量
-        av_opt_set(codecContext.priv_data(), "tune", "zerolatency", 0);
-        av_opt_set(codecContext.priv_data(), "profile", "high", 0);  // 使用High Profile提高压缩效率
+        // 设置编码器选项 - 优先低延迟
+        av_opt_set(codecContext.priv_data(), "preset", "ultrafast", 0);  // 快速编码，降低延迟
+        av_opt_set(codecContext.priv_data(), "tune", "zerolatency", 0);  // 零延迟优化
+        av_opt_set(codecContext.priv_data(), "profile", "baseline", 0);  // Baseline Profile 降低延迟
         
         // 打开编码器
         int ret = avcodec_open2(codecContext, codec, (org.bytedeco.ffmpeg.avutil.AVDictionary) null);
