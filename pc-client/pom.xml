@@ -92,7 +92,7 @@
                 </configuration>
             </plugin>
 
-            <!-- 复制依赖到lib目录 -->
+            <!-- 复制依赖到 lib 目录 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -113,6 +113,67 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- JPackage 生成 EXE -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>com.cast.pc.Main</mainClass>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>build-exe</id>
+            <build>
+                <plugins>
+                    <!-- Launch4j - 生成 EXE 启动器 -->
+                    <plugin>
+                        <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                        <artifactId>launch4j-maven-plugin</artifactId>
+                        <version>2.4.1</version>
+                        <executions>
+                            <execution>
+                                <id>l4j</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>launch4j</goal>
+                                </goals>
+                                <configuration>
+                                    <headerType>gui</headerType>
+                                    <outfile>${project.build.directory}/投屏助手.exe</outfile>
+                                    <jar>${project.build.directory}/${project.build.finalName}.jar</jar>
+                                    <errTitle>投屏助手</errTitle>
+                                    <classPath>
+                                        <mainClass>com.cast.pc.Main</mainClass>
+                                        <addDependencies>false</addDependencies>
+                                        <jarLocation>lib/</jarLocation>
+                                    </classPath>
+                                    <jre>
+                                        <path>%JAVA_HOME%</path>
+                                        <minVersion>17</minVersion>
+                                        <opts>
+                                            <opt>-Djava.library.path=lib</opt>
+                                        </opts>
+                                    </jre>
+                                    <icon>${project.basedir}/icon/ay-cast.ico</icon>
+                                    <version>${project.version}.0.0</version>
+                                    <fileDescription>投屏助手</fileDescription>
+                                    <copyright>Cast Pro</copyright>
+                                    <productname>投屏助手</productname>
+                                    <productName>投屏助手</productName>
+                                    <internalName>投屏助手</internalName>
+                                    <originalFilename>投屏助手.exe</originalFilename>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
