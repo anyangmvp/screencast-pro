@@ -10,7 +10,7 @@ if not exist screenshots mkdir screenshots
 
 echo 正在截取TV屏幕...
 adb shell screencap -p /sdcard/screenshot_tv.png
-adb pull /sdcard/screenshot_tv.png screenshots/Screenshot-TV.png
+adb pull /sdcard/screenshot_tv.png Screenshot-TV.png
 echo TV屏幕截图已保存到 screenshots/Screenshot-TV.png
 echo.
 
