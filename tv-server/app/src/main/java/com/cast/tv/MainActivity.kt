@@ -381,17 +381,6 @@ fun MainScreen(
  */
 @Composable
 fun TitleSection() {
-    val infiniteTransition = rememberInfiniteTransition(label = "glow")
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 0.7f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = EaseInOutCubic),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "glowAlpha"
-    )
-    
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -409,18 +398,12 @@ fun TitleSection() {
                         MainActivity.ColorPrimaryPurple
                     )
                 )
-            ),
-            modifier = Modifier
-                .shadow(
-                    elevation = 20.dp,
-                    spotColor = MainActivity.ColorPrimaryPurple.copy(alpha = glowAlpha),
-                    ambientColor = MainActivity.ColorPrimaryPurple.copy(alpha = glowAlpha)
-                )
+            )
         )
         
         // 副标题
         Text(
-            text = "无线投屏到安卓 TV",
+            text = "电脑无线投屏到安卓设备",
             fontSize = 20.sp,
             color = MainActivity.ColorTextMuted,
             fontWeight = FontWeight.Medium,
@@ -492,15 +475,14 @@ fun IpDisplay(ip: String) {
                     ),
                     shape = RoundedCornerShape(16.dp)
                 )
-                .padding(horizontal = 32.dp, vertical = 16.dp)
+                .padding(horizontal = 24.dp, vertical = 12.dp)
         ) {
             Text(
                 text = ip,
                 fontSize = 42.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MainActivity.ColorPrimaryIndigo,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                textAlign = TextAlign.Center
             )
         }
     }
